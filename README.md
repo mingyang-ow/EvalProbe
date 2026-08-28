@@ -72,6 +72,12 @@ The dry run makes no network calls and persists no request text. Execution requi
 Exact prompts, schemas, pricing assumptions, and operational behavior are documented in
 [Phase 1A](docs/PHASE1A.md).
 
+## Human review console
+
+The local Streamlit console supports reproducible human inspection of the Phase 0 sentence audit
+and Phase 1A judge disagreements without contacting a model. It keeps corpus text local while
+persisting only safe adjudication metadata. See [Human review console](docs/REVIEW_CONSOLE.md).
+
 ## Next gate
 
 The TRAIN canary and the Phase 0 sentence-conversion sample require recorded human review before

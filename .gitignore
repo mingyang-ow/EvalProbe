@@ -17,3 +17,4 @@ data/processed/*
 reports/phase0/manual_audit.jsonl
 reports/phase1/**/raw/
 runs/
+reports/review/.*.tmp

@@ -18,6 +18,8 @@ from evalprobe.phase1.runner import (
     preflight_summary,
     write_dry_run,
 )
+from evalprobe.review.diagnostics import aggregate_suspicious_units
+from evalprobe.review.storage import load_adjudications, review_summary, write_safe_json
 
 
 def _load_config(path: Path) -> dict[str, Any]:
@@ -92,6 +94,28 @@ def parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("reports/phase1/train-canary-v1"),
     )
+    review = commands.add_parser("review", help="Local human-adjudication operations")
+    review_commands = review.add_subparsers(dest="review_command", required=True)
+    summary = review_commands.add_parser("summary", help="Summarize safe human decisions")
+    summary.add_argument(
+        "--adjudications",
+        type=Path,
+        default=Path("reports/review/adjudications.jsonl"),
+    )
+    summary.add_argument(
+        "--output",
+        type=Path,
+        default=Path("reports/review/review_summary.json"),
+    )
+    diagnostics = review_commands.add_parser(
+        "diagnostics", help="Count suspicious deterministic sentence units"
+    )
+    diagnostics.add_argument("--data-dir", type=Path, default=Path("data/raw"))
+    diagnostics.add_argument(
+        "--output",
+        type=Path,
+        default=Path("reports/review/suspicious_units_summary.json"),
+    )
     return root
 
 
@@ -99,6 +123,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     if args.command == "phase1":
         return _run_phase1(args)
+    if args.command == "review":
+        return _run_review(args)
     config = _load_config(args.config)
     if args.phase0_command == "audit":
         summary = run_audit(args.data_dir, args.output_dir, config)
@@ -162,4 +188,29 @@ def _run_phase1(args: argparse.Namespace) -> int:
     print(f"Completed calls: {analysis['completed_calls']} / {analysis['expected_calls']}")
     print(f"Estimated API cost: ${analysis['total_estimated_cost_usd']:.6f}")
     print(f"Report: {args.output_dir / 'canary_report.md'}")
+    return 0
+
+
+def _run_review(args: argparse.Namespace) -> int:
+    if args.review_command == "summary":
+        summary = review_summary(load_adjudications(args.adjudications))
+        write_safe_json(args.output, summary)
+        phase0 = summary["phase0_sentence_audit"]
+        phase1 = summary["phase1a_disagreements"]
+        print("Phase 0 sentence audit")
+        for status, count in phase0["status_counts"].items():
+            print(f"{status}: {count}")
+        print("Phase 1A disagreements")
+        for classification, count in phase1["classification_counts"].items():
+            print(f"{classification}: {count}")
+        print(f"Summary: {args.output}")
+        return 0
+    diagnostics = aggregate_suspicious_units(args.data_dir)
+    write_safe_json(args.output, diagnostics)
+    for split, counts in diagnostics["splits"].items():
+        print(
+            f"{split.upper()}: {counts['suspicious_unit_count']} suspicious / "
+            f"{counts['sentence_unit_count']} sentence units"
+        )
+    print(f"Diagnostics: {args.output}")
     return 0

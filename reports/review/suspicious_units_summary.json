@@ -1,0 +1,46 @@
+{
+  "judge_results_used": false,
+  "methodology_changed": false,
+  "overall": {
+    "eligible_response_count": 5767,
+    "reason_counts": {
+      "EMPTY": 0,
+      "LIST_MARKER_ONLY": 10305,
+      "NO_ALPHABETIC_CHARACTERS": 10294,
+      "NUMBER_ONLY": 0,
+      "PUNCTUATION_ONLY": 1,
+      "VERY_SHORT_FORMATTING_TOKEN": 10291
+    },
+    "sentence_unit_count": 50541,
+    "suspicious_unit_count": 10309
+  },
+  "scope": "eligible QA responses; deterministic diagnostics only",
+  "splits": {
+    "test": {
+      "eligible_response_count": 875,
+      "reason_counts": {
+        "EMPTY": 0,
+        "LIST_MARKER_ONLY": 1203,
+        "NO_ALPHABETIC_CHARACTERS": 1202,
+        "NUMBER_ONLY": 0,
+        "PUNCTUATION_ONLY": 0,
+        "VERY_SHORT_FORMATTING_TOKEN": 1202
+      },
+      "sentence_unit_count": 6766,
+      "suspicious_unit_count": 1203
+    },
+    "train": {
+      "eligible_response_count": 4892,
+      "reason_counts": {
+        "EMPTY": 0,
+        "LIST_MARKER_ONLY": 9102,
+        "NO_ALPHABETIC_CHARACTERS": 9092,
+        "NUMBER_ONLY": 0,
+        "PUNCTUATION_ONLY": 1,
+        "VERY_SHORT_FORMATTING_TOKEN": 9089
+      },
+      "sentence_unit_count": 43775,
+      "suspicious_unit_count": 9106
+    }
+  }
+}
