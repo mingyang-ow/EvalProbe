@@ -26,6 +26,7 @@ Obsidian vault if useful; no Obsidian plugin is required.
 ## Findings
 
 - [Durable TRAIN findings](findings/train-findings.md)
+- [Frozen TEST findings](findings/test-findings.md)
 
 Maintenance rule: README is the concise portfolio entry point; `story.md` explains why the
 project changed; methodology notes define stable rules; experiment notes describe specific runs;

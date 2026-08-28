@@ -1,0 +1,212 @@
+{
+  "granularity_gap": {
+    "recovered_by_local_overlap": 0,
+    "recovery_rate": {
+      "denominator": 1,
+      "numerator": 0,
+      "value": 0.0
+    },
+    "whole_false_negative_records": 1
+  },
+  "local_sentence_v2": {
+    "false_negative_units": 12,
+    "false_positive_units": 71,
+    "predicted_unsupported_units": 131,
+    "reference_unsupported_units": 72,
+    "response_exact_set_agreement": {
+      "denominator": 60,
+      "numerator": 24,
+      "value": 0.4
+    },
+    "true_positive_units": 60,
+    "unsupported_unit_precision": {
+      "denominator": 131,
+      "numerator": 60,
+      "value": 0.4580152671755725
+    },
+    "unsupported_unit_recall": {
+      "denominator": 72,
+      "numerator": 60,
+      "value": 0.8333333333333334
+    }
+  },
+  "methodology": {
+    "local_units_version": "sentence-v2",
+    "model": "gpt-5.6-sol",
+    "prompts": {
+      "local": "local-grounding-v1",
+      "whole": "whole-grounding-v1"
+    },
+    "reasoning_effort": "low"
+  },
+  "operational": {
+    "all_attempt_status_counts": {
+      "completed": 120
+    },
+    "attempt_rows": 120,
+    "average_cost_usd": 0.005036700000000001,
+    "completed_calls": 120,
+    "cost_usd": 0.604404,
+    "current_status_counts": {
+      "completed": 120
+    },
+    "expected_calls": 120,
+    "failures": [],
+    "latency_ms": {
+      "max": 14379,
+      "mean": 2725.891666666667,
+      "median": 2288.0,
+      "min": 944
+    },
+    "operational_failure_count": 0,
+    "usage": {
+      "cache_write_tokens": 6852,
+      "cached_input_tokens": 0,
+      "input_tokens": 89798,
+      "output_tokens": 11918,
+      "reasoning_tokens": 9578,
+      "total_tokens": 101716
+    }
+  },
+  "phase_status": "complete",
+  "review_queue": {
+    "counts_by_type": {
+      "FALSE_NEGATIVE": 1,
+      "FALSE_POSITIVE": 11,
+      "JUDGE_ONLY": 71,
+      "REFERENCE_ONLY": 12
+    },
+    "human_adjudication_status": "not_started",
+    "item_count": 95
+  },
+  "run_id": "frozen-test-v1",
+  "unsupported_burden_strata": {
+    "high": {
+      "caught": 10,
+      "detection_rate": {
+        "denominator": 10,
+        "numerator": 10,
+        "value": 1.0,
+        "wilson_95": {
+          "high": 0.9999999999999999,
+          "low": 0.7224672001371107
+        }
+      },
+      "false_negative_rate": {
+        "denominator": 10,
+        "numerator": 0,
+        "value": 0.0
+      },
+      "missed": 0,
+      "total": 10
+    },
+    "low": {
+      "caught": 9,
+      "detection_rate": {
+        "denominator": 10,
+        "numerator": 9,
+        "value": 0.9,
+        "wilson_95": {
+          "high": 0.9821237869049271,
+          "low": 0.5958499732047615
+        }
+      },
+      "false_negative_rate": {
+        "denominator": 10,
+        "numerator": 1,
+        "value": 0.1
+      },
+      "missed": 1,
+      "total": 10
+    },
+    "medium": {
+      "caught": 10,
+      "detection_rate": {
+        "denominator": 10,
+        "numerator": 10,
+        "value": 1.0,
+        "wilson_95": {
+          "high": 0.9999999999999999,
+          "low": 0.7224672001371107
+        }
+      },
+      "false_negative_rate": {
+        "denominator": 10,
+        "numerator": 0,
+        "value": 0.0
+      },
+      "missed": 0,
+      "total": 10
+    }
+  },
+  "unsupported_locality": {
+    "DISTRIBUTED": {
+      "caught": 16,
+      "detection_rate": {
+        "denominator": 16,
+        "numerator": 16,
+        "value": 1.0
+      },
+      "missed": 0,
+      "total": 16
+    },
+    "LOCALIZED": {
+      "caught": 13,
+      "detection_rate": {
+        "denominator": 14,
+        "numerator": 13,
+        "value": 0.9285714285714286
+      },
+      "missed": 1,
+      "total": 14
+    }
+  },
+  "whole_response": {
+    "accuracy": {
+      "denominator": 60,
+      "numerator": 48,
+      "value": 0.8,
+      "wilson_95": {
+        "high": 0.8817149467710251,
+        "low": 0.6821819419437211
+      }
+    },
+    "balanced_accuracy": 0.8,
+    "confusion_matrix": {
+      "reference_supported_predicted_supported": 19,
+      "reference_supported_predicted_unsupported": 11,
+      "reference_unsupported_predicted_supported": 1,
+      "reference_unsupported_predicted_unsupported": 29
+    },
+    "supported": {
+      "precision": {
+        "denominator": 20,
+        "numerator": 19,
+        "value": 0.95
+      },
+      "recall": {
+        "denominator": 30,
+        "numerator": 19,
+        "value": 0.6333333333333333
+      }
+    },
+    "unsupported": {
+      "false_negative_count": 1,
+      "false_negative_rate": {
+        "denominator": 30,
+        "numerator": 1,
+        "value": 0.03333333333333333
+      },
+      "precision": {
+        "denominator": 40,
+        "numerator": 29,
+        "value": 0.725
+      },
+      "recall": {
+        "denominator": 30,
+        "numerator": 29,
+        "value": 0.9666666666666667
+      }
+    }
+  }
+}

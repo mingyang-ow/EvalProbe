@@ -72,8 +72,15 @@ change a frozen operational constraint merely to force execution. **Consequence:
 **Observation:** the human operator subsequently authorized a $3.00 cap as a budget-only change.
 **Decision:** retain the frozen methodology and rerun the complete preflight unchanged. **Reason:**
 the $2.108292 conservative maximum now fits within explicit authorization. **Consequence:** every
-zero-call gate passed, but the execution environment rejected the paid data-export action before
-the first provider request. TEST remains `BLOCKED BEFORE TEST`; no semantics, usage, or cost were
-fabricated.
+zero-call gate passed. The execution environment initially required direct confirmation of the
+paid data export; after that confirmation, the frozen TEST ran without tuning or operational
+failure.
+
+**Observation:** whole-response accuracy was 48/60, with 29/30 unsupported responses detected;
+the single whole-response miss was not recovered by an overlapping local detection. **Decision:**
+freeze these official metrics and defer all human inspection to explanatory error analysis.
+**Reason:** TEST disagreements must not rewrite RAGTruth or tune the experiment. **Consequence:**
+the run is `TEST COMPLETE — READY FOR ERROR ANALYSIS`; 95 whole/local disagreement items are queued
+and none has been human-adjudicated.
 
 Navigation and stable definitions live in [docs/INDEX.md](docs/INDEX.md).

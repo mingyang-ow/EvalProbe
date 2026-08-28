@@ -30,3 +30,11 @@ def test_review_console_loads_both_segmentation_versions() -> None:
     app.run(timeout=30)
     assert not app.exception
     assert any(selectbox.label == "Primary classification" for selectbox in app.selectbox)
+
+    judge_run = next(
+        control for control in app.segmented_control if control.label == "Judge run"
+    )
+    judge_run.set_value("Frozen TEST")
+    app.run(timeout=30)
+    assert not app.exception
+    assert any(selectbox.label == "Primary classification" for selectbox in app.selectbox)

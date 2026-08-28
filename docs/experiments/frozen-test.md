@@ -47,6 +47,33 @@ preflight above is retained as historical operational evidence.
 
 The rerun passed every pre-execution gate with the same $2.108292 conservative maximum and made
 zero network calls during validation. The managed execution approval guard then rejected the paid
-corpus-derived data export before the first provider request. No `results.jsonl` exists; calls,
-usage, and cost remain zero. Status remains **BLOCKED BEFORE TEST** pending direct approval accepted
-by the execution environment.
+corpus-derived data export before the first provider request. After the human operator supplied the
+required direct confirmation, the exact frozen run proceeded without any methodology change.
+
+## Execution outcome
+
+- Provider attempts/completed calls: 120/120
+- Operational failures: 0
+- Input tokens: 89,798 (0 cached; 6,852 cache-write tokens reported)
+- Output tokens: 11,918, including 9,578 reasoning tokens
+- Total tokens: 101,716
+- Estimated actual cost: $0.604404 against the $3.00 hard cap
+
+## Official TEST metrics
+
+Whole-response confusion counts were 19 supported→supported, 11 supported→unsupported,
+1 unsupported→supported, and 29 unsupported→unsupported. Accuracy and balanced accuracy were both
+48/60 = 0.800. Unsupported precision was 29/40 = 0.725 and recall was 29/30 = 0.967; the unsupported
+false-negative rate was 1/30 = 0.033.
+
+Unsupported detection by frozen burden stratum was 9/10 low, 10/10 medium, and 10/10 high. The
+sentence-v2 local result had exact-set agreement on 24/60 responses, unsupported-unit precision of
+60/131 = 0.458, and recall of 60/72 = 0.833, with 71 false-positive and 12 false-negative local
+sentence units. The one whole-response unsupported miss was recovered by overlapping local
+detection in 0/1 cases. Descriptively, whole detection was 13/14 for localized and 16/16 for
+distributed unsupported responses.
+
+The safe queue contains 95 items: 1 whole false negative, 11 whole false positives, 12 local
+reference-only units, and 71 local judge-only units. Human TEST adjudication has not started;
+official metrics remain Sol versus unchanged RAGTruth. Status: **TEST COMPLETE — READY FOR ERROR
+ANALYSIS**.
