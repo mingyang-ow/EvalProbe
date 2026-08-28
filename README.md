@@ -8,18 +8,26 @@ The primary endpoint in the future experiment will be whole-response rejection. 
 
 [RAGTruth](https://github.com/ParticleMedia/RAGTruth) provides natural RAG responses with human character-span hallucination annotations. Those spans support both the whole-response reference and a controlled measure of hallucination burden without using an LLM to extract claims. `implicit_true` annotations remain unsupported here: EvalProbe measures grounding against supplied evidence, not truth using outside knowledge.
 
-## Current status: Phase 0
+## Current status
 
-This repository audits the real RAGTruth schema, filters non-quality QA responses, validates every QA annotation offset, derives text-free numeric features, converts spans to deterministic sentence labels, and freezes a 60-response QA test pilot. It contains no judge harness, provider adapter, paid API call, or Phase 1 result.
+**Phase 0 is complete.** The repository audits RAGTruth, validates annotation offsets,
+derives text-free features, and preserves a frozen 60-response QA test pilot.
+
+**Phase 1A implements the judge contract and a six-record TRAIN-only canary.** It uses one
+strong judge (`gpt-5.6-sol`, low reasoning) through the OpenAI Responses API. The canary is a
+contract diagnostic, not a performance result, and the frozen TEST pilot remains untouched.
 
 ```mermaid
 flowchart LR
     A[RAGTruth] --> B[Schema and reference audit]
     B --> C[Deterministic feature derivation]
     C --> D[Frozen pilot]
-    D -. future .-> E[Whole-response judge]
-    E -. future .-> F[Sentence-level judge]
-    F -. future .-> G[Comparison and error analysis]
+    D --> E[Safe judge-input builder]
+    E --> F[Independent whole judge]
+    E --> G[Independent local judge]
+    F --> H[Validated result envelope]
+    G --> H
+    H -. future TEST run .-> I[Comparison and error analysis]
 ```
 
 ## Experimental discipline
@@ -31,6 +39,9 @@ flowchart LR
 - Burden tertiles come only from eligible QA training responses.
 - The test pilot targets 30 supported and 30 unsupported responses (10 per burden tertile), with at most one response per `source_id` and seed `20260828`.
 - Test data never chooses thresholds. See [judge-input leakage controls](docs/LEAKAGE_CONTROLS.md).
+- Whole and local judgments are independent requests with no conversation or reasoning state shared.
+- The judge returns only a verdict or unsupported sentence IDs—no rationale or chain-of-thought.
+- Paid execution is explicit, resumable, sequential, retry-free, and guarded by a configured cap.
 
 ## Reproduce Phase 0
 
@@ -49,6 +60,20 @@ Raw files and the text-bearing manual audit stay local. See [third-party data pr
 
 Generated tracked artifacts contain only IDs, derived numeric metadata, aggregate counts, and a Markdown report. Dataset counts are computed from the files in `data/raw/`; the code does not assert published totals.
 
-## Next phase
+## Reproduce the Phase 1A contract check
 
-After a human reviews the conversion sample and the frozen pilot passes all integrity checks, Phase 1 can implement a leakage-controlled whole-response judge and a sentence-level explanatory endpoint. That work is intentionally out of scope here.
+```bash
+uv run evalprobe phase1 canary --dry-run
+uv run evalprobe phase1 canary --execute --max-cost-usd 0.50
+```
+
+The dry run makes no network calls and persists no request text. Execution requires
+`OPENAI_API_KEY` from the environment; it uses no tools, fallback model, or automatic retry.
+Exact prompts, schemas, pricing assumptions, and operational behavior are documented in
+[Phase 1A](docs/PHASE1A.md).
+
+## Next gate
+
+The TRAIN canary and the Phase 0 sentence-conversion sample require recorded human review before
+the prompt can be frozen and the TEST pilot authorized. Repeated tuning against the six canary
+records is intentionally out of scope.

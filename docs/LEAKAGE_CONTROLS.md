@@ -1,6 +1,6 @@
 # Judge-input leakage controls
 
-Phase 0 does not implement or call an LLM judge. For the future judge harness, construct inputs through an explicit allowlist containing only:
+Phase 1A constructs judge inputs through an explicit allowlist containing only:
 
 - question;
 - retrieved evidence/passages;
@@ -8,4 +8,9 @@ Phase 0 does not implement or call an LLM judge. For the future judge harness, c
 
 Never include human hallucination labels, span offsets or text, annotation comments, `implicit_true`, reference verdicts, generator/model identity, temperature, response quality, burden stratum, locality, split, or other benchmark metadata.
 
-Reference construction and judge-input construction must remain separate code paths. The pilot manifest is evaluation metadata and must never be interpolated into a judge prompt.
+Reference and judge-input construction use separate dataclasses. The safe DTOs cannot hold record
+IDs, reference labels, spans, burden, split, generator metadata, or other evaluation fields. Whole
+and local payloads are created independently, and neither receives a previous response ID.
+
+Manifests and result envelopes are evaluation metadata and are never interpolated into judge
+prompts. Tests inspect the allowlist, forbidden keys, independent payloads, and zero-network dry run.

@@ -1,12 +1,23 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 from typing import Any
 
 import yaml
 
 from evalprobe.phase0.audit import build_pilot, run_audit
+from evalprobe.phase1.analysis import analyze_canary
+from evalprobe.phase1.provider import OpenAIResponsesJudge
+from evalprobe.phase1.runner import (
+    CanaryExecutionError,
+    build_plan,
+    execute_plan,
+    manifest_rows,
+    preflight_summary,
+    write_dry_run,
+)
 
 
 def _load_config(path: Path) -> dict[str, Any]:
@@ -28,6 +39,30 @@ def _load_config(path: Path) -> dict[str, Any]:
     return value
 
 
+def _load_phase1_config(path: Path) -> dict[str, Any]:
+    value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("Phase 1 config must be a YAML mapping")
+    canary = value.get("canary", {})
+    judge = value.get("judge", {})
+    budget = value.get("budget", {})
+    if canary.get("split") != "train":
+        raise ValueError("Phase 1A canary must use TRAIN only")
+    if canary.get("total") != 6 or canary.get("supported") != 3 or canary.get("unsupported") != 3:
+        raise ValueError("Phase 1A requires a 3/3 six-record canary")
+    if sum(canary.get("unsupported_strata", {}).values()) != canary.get("unsupported"):
+        raise ValueError("Canary unsupported strata must sum to three")
+    if canary.get("max_per_source_id") != 1 or canary.get("expected_calls") != 12:
+        raise ValueError("Phase 1A requires 12 calls and one record per source")
+    if judge.get("model") != "gpt-5.6-sol" or judge.get("reasoning_effort") != "low":
+        raise ValueError("Phase 1A requires gpt-5.6-sol with low reasoning")
+    if judge.get("automatic_retries") != 0 or judge.get("fallback_models") != 0:
+        raise ValueError("Phase 1A prohibits retries and fallback models")
+    if budget.get("maximum_paid_calls") != 12 or float(budget.get("hard_cap_usd", 0)) != 0.50:
+        raise ValueError("Phase 1A requires a 12-call, USD $0.50 hard cap")
+    return value
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(prog="evalprobe")
     commands = root.add_subparsers(dest="command", required=True)
@@ -38,11 +73,32 @@ def parser() -> argparse.ArgumentParser:
         command.add_argument("--config", type=Path, default=Path("configs/phase0.yaml"))
         command.add_argument("--data-dir", type=Path, default=Path("data/raw"))
         command.add_argument("--output-dir", type=Path, default=Path("reports/phase0"))
+    phase1 = commands.add_parser("phase1", help="Judge contract and TRAIN canary")
+    phase1_commands = phase1.add_subparsers(dest="phase1_command", required=True)
+    canary = phase1_commands.add_parser("canary")
+    mode = canary.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--dry-run", action="store_true")
+    mode.add_argument("--execute", action="store_true")
+    canary.add_argument("--max-cost-usd", type=float)
+    canary.add_argument("--config", type=Path, default=Path("configs/phase1.yaml"))
+    canary.add_argument("--data-dir", type=Path, default=Path("data/raw"))
+    canary.add_argument(
+        "--features",
+        type=Path,
+        default=Path("reports/phase0/derived_features.jsonl"),
+    )
+    canary.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("reports/phase1/train-canary-v1"),
+    )
     return root
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
+    if args.command == "phase1":
+        return _run_phase1(args)
     config = _load_config(args.config)
     if args.phase0_command == "audit":
         summary = run_audit(args.data_dir, args.output_dir, config)
@@ -58,4 +114,52 @@ def main(argv: list[str] | None = None) -> int:
         f"{pilot['unique_source_ids']} unique source IDs."
     )
     print(f"Manifest: {args.output_dir / 'pilot_manifest.jsonl'}")
+    return 0
+
+
+def _print_preflight(summary: dict[str, Any]) -> None:
+    print(f"Model: {summary['model']}")
+    print(f"Reasoning effort: {summary['reasoning_effort']}")
+    print(f"Selected TRAIN records: {summary['selected_record_count']}")
+    print(
+        f"Expected calls: {summary['expected_call_count']} "
+        f"({summary['whole_call_count']} whole + {summary['local_call_count']} local)"
+    )
+    print(
+        f"Approximate input: {summary['approximate_input_characters']} characters / "
+        f"{summary['approximate_input_tokens']} tokens"
+    )
+    print(f"Configured max output: {summary['max_output_tokens']}")
+    print(f"Conservative estimated maximum cost: ${summary['estimated_max_cost_usd']:.6f}")
+    print(f"Hard spend limit: ${summary['hard_spend_limit_usd']:.2f}")
+
+
+def _run_phase1(args: argparse.Namespace) -> int:
+    config = _load_phase1_config(args.config)
+    plan = build_plan(config, args.data_dir, args.features)
+    configured_cap = float(config["budget"]["hard_cap_usd"])
+    max_cost = configured_cap if args.max_cost_usd is None else args.max_cost_usd
+    summary = preflight_summary(plan, max_cost)
+    _print_preflight(summary)
+    if args.dry_run:
+        write_dry_run(plan, args.output_dir, max_cost)
+        print("Dry run complete: 0 network calls.")
+        print(f"Summary: {args.output_dir / 'dry_run.json'}")
+        return 0
+    if args.max_cost_usd is None:
+        raise SystemExit("--execute requires explicit --max-cost-usd")
+    if not os.environ.get("OPENAI_API_KEY"):
+        raise SystemExit("OPENAI_API_KEY is required for --execute")
+    from openai import OpenAI
+
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"], max_retries=0)
+    judge = OpenAIResponsesJudge(client)
+    try:
+        results = execute_plan(plan, judge, args.output_dir, max_cost)
+    except CanaryExecutionError as error:
+        raise SystemExit(str(error)) from error
+    analysis = analyze_canary(manifest_rows(plan), results, args.output_dir, max_cost)
+    print(f"Completed calls: {analysis['completed_calls']} / {analysis['expected_calls']}")
+    print(f"Estimated API cost: ${analysis['total_estimated_cost_usd']:.6f}")
+    print(f"Report: {args.output_dir / 'canary_report.md'}")
     return 0

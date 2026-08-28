@@ -1,0 +1,174 @@
+{
+  "attempt_count": 13,
+  "attempts_with_missing_usage": 1,
+  "automated_freeze_gates": "fail",
+  "average_estimated_cost_per_completed_call_usd": 0.005460583333333334,
+  "completed_calls": 12,
+  "configured_cap_usd": 0.5,
+  "expected_calls": 12,
+  "granularity_example_record_ids": [],
+  "historical_operational_failures": [
+    {
+      "call_key": "train-canary-v1:12009:local:local-grounding-v1",
+      "error_type": "BadRequestError",
+      "schema_version": "local-output-v1",
+      "status": "provider_error"
+    }
+  ],
+  "human_prompt_review_required": true,
+  "interpretation": "TRAIN-only six-record contract diagnostic; do not interpret as a performance estimate",
+  "local": {
+    "exact_agreement_count": 2,
+    "false_negative_sentence_count": 2,
+    "false_positive_sentence_count": 8,
+    "records": [
+      {
+        "agreement": false,
+        "false_negative_sentence_ids": [],
+        "false_positive_sentence_ids": [
+          2,
+          6
+        ],
+        "judge_unsupported_sentence_ids": [
+          2,
+          5,
+          6
+        ],
+        "record_id": "12009",
+        "reference_unsupported_sentence_ids": [
+          5
+        ]
+      },
+      {
+        "agreement": false,
+        "false_negative_sentence_ids": [
+          4,
+          6
+        ],
+        "false_positive_sentence_ids": [
+          13
+        ],
+        "judge_unsupported_sentence_ids": [
+          5,
+          7,
+          12,
+          13
+        ],
+        "record_id": "12839",
+        "reference_unsupported_sentence_ids": [
+          4,
+          5,
+          6,
+          7,
+          12
+        ]
+      },
+      {
+        "agreement": false,
+        "false_negative_sentence_ids": [],
+        "false_positive_sentence_ids": [
+          12,
+          19
+        ],
+        "judge_unsupported_sentence_ids": [
+          12,
+          19
+        ],
+        "record_id": "13899",
+        "reference_unsupported_sentence_ids": []
+      },
+      {
+        "agreement": true,
+        "false_negative_sentence_ids": [],
+        "false_positive_sentence_ids": [],
+        "judge_unsupported_sentence_ids": [],
+        "record_id": "15074",
+        "reference_unsupported_sentence_ids": []
+      },
+      {
+        "agreement": true,
+        "false_negative_sentence_ids": [],
+        "false_positive_sentence_ids": [],
+        "judge_unsupported_sentence_ids": [],
+        "record_id": "15288",
+        "reference_unsupported_sentence_ids": []
+      },
+      {
+        "agreement": false,
+        "false_negative_sentence_ids": [],
+        "false_positive_sentence_ids": [
+          8,
+          11,
+          12
+        ],
+        "judge_unsupported_sentence_ids": [
+          5,
+          8,
+          11,
+          12
+        ],
+        "record_id": "16875",
+        "reference_unsupported_sentence_ids": [
+          5
+        ]
+      }
+    ]
+  },
+  "operational_status_counts": {
+    "completed": 12
+  },
+  "operational_status_counts_all_attempts": {
+    "completed": 12,
+    "provider_error": 1
+  },
+  "total_estimated_cost_usd": 0.065527,
+  "usage": {
+    "cache_write_tokens": 1043,
+    "cached_input_tokens": 0,
+    "input_tokens": 8771,
+    "output_tokens": 1470,
+    "reasoning_tokens": 1238,
+    "total_tokens": 10241
+  },
+  "whole_response": {
+    "agreement_count": 5,
+    "records": [
+      {
+        "agreement": true,
+        "judge_verdict": "UNSUPPORTED",
+        "record_id": "12009",
+        "reference_verdict": "UNSUPPORTED"
+      },
+      {
+        "agreement": true,
+        "judge_verdict": "UNSUPPORTED",
+        "record_id": "12839",
+        "reference_verdict": "UNSUPPORTED"
+      },
+      {
+        "agreement": false,
+        "judge_verdict": "UNSUPPORTED",
+        "record_id": "13899",
+        "reference_verdict": "SUPPORTED"
+      },
+      {
+        "agreement": true,
+        "judge_verdict": "SUPPORTED",
+        "record_id": "15074",
+        "reference_verdict": "SUPPORTED"
+      },
+      {
+        "agreement": true,
+        "judge_verdict": "SUPPORTED",
+        "record_id": "15288",
+        "reference_verdict": "SUPPORTED"
+      },
+      {
+        "agreement": true,
+        "judge_verdict": "UNSUPPORTED",
+        "record_id": "16875",
+        "reference_verdict": "UNSUPPORTED"
+      }
+    ]
+  }
+}
