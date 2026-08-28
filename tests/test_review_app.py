@@ -7,6 +7,7 @@ def test_review_console_loads_both_segmentation_versions() -> None:
     app_path = Path(__file__).parents[1] / "src/evalprobe/review/app.py"
     app = AppTest.from_file(str(app_path)).run(timeout=30)
     assert not app.exception
+    assert any(control.label == "Judge run" for control in app.segmented_control)
 
     methodology = next(
         control for control in app.segmented_control if control.label == "Local-unit methodology"

@@ -9,6 +9,7 @@ import yaml
 
 from evalprobe.phase0.audit import build_pilot, run_audit
 from evalprobe.phase1.analysis import analyze_canary
+from evalprobe.phase1.persistence import ResultStore
 from evalprobe.phase1.provider import OpenAIResponsesJudge
 from evalprobe.phase1.runner import (
     CanaryExecutionError,
@@ -28,6 +29,7 @@ from evalprobe.phase1c.workflow import (
     load_phase1c_config,
     reusable_whole_results,
 )
+from evalprobe.phase2.analysis import analyze_frozen_test
 from evalprobe.phase2.workflow import (
     build_frozen_test_plan,
     load_phase2_config,
@@ -413,7 +415,14 @@ def _run_phase2(args: argparse.Namespace) -> int:
     try:
         results = execute_plan(plan, judge, args.output_dir, max_cost)
     except CanaryExecutionError as error:
+        partial = ResultStore(args.output_dir / "results.jsonl").read_all()
+        if partial:
+            analyze_frozen_test(plan, partial, args.output_dir)
         raise SystemExit(str(error)) from error
-    completed = sum(result.get("status") == "completed" for result in results)
+    analysis = analyze_frozen_test(plan, results, args.output_dir)
+    completed = analysis["operational"]["completed_calls"]
     print(f"Completed TEST calls: {completed} / {len(plan.calls)}")
+    print(f"Operational failures: {analysis['operational']['operational_failure_count']}")
+    print(f"Estimated API cost: ${analysis['operational']['cost_usd']:.6f}")
+    print(f"Report: {args.output_dir / 'report.md'}")
     return 0

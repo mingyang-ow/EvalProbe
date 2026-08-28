@@ -75,8 +75,8 @@ def load_phase2_config(path: Path) -> dict[str, Any]:
         raise ValueError("Phase 2 prompt versions are frozen")
     if local_units.get("version") != "sentence-v2":
         raise ValueError("Phase 2 local units are frozen at sentence-v2")
-    if float(budget.get("hard_cap_usd", 0)) != 1.50:
-        raise ValueError("Phase 2 hard cap must remain USD $1.50")
+    if float(budget.get("hard_cap_usd", 0)) != 3.00:
+        raise ValueError("Phase 2B authorized hard cap must remain USD $3.00")
     if budget.get("maximum_paid_calls") != 120:
         raise ValueError("Phase 2 permits at most 120 paid calls")
     manifest_hash = frozen_pilot.get("sha256")

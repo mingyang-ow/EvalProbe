@@ -35,6 +35,7 @@ PHASE0_AUDIT = REPOSITORY_ROOT / "reports/phase0/manual_audit.jsonl"
 PHASE0_AUDIT_V2 = REPOSITORY_ROOT / "reports/phase0/manual_audit_v2.jsonl"
 PHASE1_DIR = REPOSITORY_ROOT / "reports/phase1/train-canary-v1"
 PHASE1C_DIR = REPOSITORY_ROOT / "reports/phase1c/train-canary-segmentation-v2"
+PHASE2_DIR = REPOSITORY_ROOT / "reports/phase2/frozen-test-v1"
 PHASE0_FEATURES = REPOSITORY_ROOT / "reports/phase0/derived_features.jsonl"
 ADJUDICATIONS = REPOSITORY_ROOT / "reports/review/adjudications.jsonl"
 
@@ -55,8 +56,19 @@ def _load_phase0(version: str) -> list[ReviewRecord]:
     return load_phase0_audit_records(path, DATA_DIR)
 
 
-@st.cache_data(show_spinner=False, max_entries=4)
-def _load_phase1(version: str) -> list[ReviewRecord]:
+@st.cache_data(show_spinner=False, max_entries=6)
+def _load_phase1(version: str, judge_run: str = "TRAIN validation") -> list[ReviewRecord]:
+    if judge_run == "Frozen TEST":
+        if version != "sentence-v2":
+            raise ValueError("Frozen TEST is available only with sentence-v2")
+        return load_phase1_canary_records(
+            PHASE2_DIR / "manifest.jsonl",
+            PHASE2_DIR / "results.jsonl",
+            PHASE0_FEATURES,
+            DATA_DIR,
+            run_id_override="frozen-test-v1",
+            local_units_version="sentence-v2",
+        )
     if version == "sentence-v2":
         return load_phase1_canary_records(
             PHASE1C_DIR / "manifest.jsonl",
@@ -486,6 +498,15 @@ with st.sidebar:
         key="segmentation_version",
         width="stretch",
     )
+    judge_run = st.segmented_control(
+        "Judge run",
+        ["TRAIN validation", "Frozen TEST"],
+        default="TRAIN validation",
+        required=True,
+        key="judge_run",
+        disabled=mode == MODE_SENTENCE,
+        width="stretch",
+    )
     st.caption("No API key is accepted. Experiment execution is a separate CLI workflow.")
 
 try:
@@ -510,9 +531,9 @@ try:
             _render_historical_context(target, decisions)
         _save_sentence_audit_form(target, decisions.get(target.identity.review_id))
     else:
-        phase1_records = _load_phase1(str(segmentation_version))
+        phase1_records = _load_phase1(str(segmentation_version), str(judge_run))
         methodology_outcomes: list[MethodologyRepairOutcome] = []
-        if segmentation_version == "sentence-v2":
+        if judge_run == "TRAIN validation" and segmentation_version == "sentence-v2":
             methodology_outcomes = phase1_segmentation_repair_outcomes(
                 phase1_records, list(decisions.values())
             )
@@ -542,7 +563,7 @@ try:
             target = _render_target_navigation(targets, "phase1_target")
             record = record_by_key[(target.identity.record_id, target.identity.view)]
             _render_record(record, target.identity.sentence_id)
-            if segmentation_version == "sentence-v2":
+            if judge_run == "TRAIN validation" and segmentation_version == "sentence-v2":
                 previous = {
                     (item.record_id, item.view): item for item in _load_phase1("sentence-v1")
                 }[(record.record_id, record.view)]

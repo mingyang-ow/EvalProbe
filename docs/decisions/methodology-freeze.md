@@ -20,7 +20,7 @@ Status: frozen before TEST. Baseline TRAIN checkpoint: Git commit `6410f39`. Fro
 | Requests | Independent, no tools, no shared state, provider storage disabled |
 | Failures | Persist operational status and available usage; fail fast; no fabricated semantics or usage |
 | Retry/fallback | Zero automatic retries; zero fallback models |
-| Budget | Hard cap $1.50; at most 120 semantic calls |
+| Budget | Phase 2B hard cap $3.00; at most 120 semantic calls (the original $1.50 gate remains historical evidence) |
 | Human review | Explanatory only; never rewrites benchmark labels or primary metrics |
 
 ## No-Tuning rule

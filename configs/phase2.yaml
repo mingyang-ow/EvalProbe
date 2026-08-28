@@ -38,7 +38,7 @@ local_units:
   version: sentence-v2
 
 budget:
-  hard_cap_usd: 1.50
+  hard_cap_usd: 3.00
   maximum_paid_calls: 120
   approximate_characters_per_token: 3
   pricing:

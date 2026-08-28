@@ -59,14 +59,21 @@ remained.
 **Observation:** further TRAIN tuning had no identified methodological target. **Decision:** freeze
 dataset, references, sample, burden thresholds, sentence-v2, span overlap, judge, reasoning effort,
 prompts, schemas, and operational behavior. **Reason:** TEST performance must not change the
-experiment that produced it. **Consequence:** the frozen 120-call TEST run is authorized only if
-every pre-execution gate—including the $1.50 conservative cost cap—passes. If a gate fails, no paid
-call is made and the blocked state is preserved as project history.
+experiment that produced it. **Consequence:** the frozen 120-call TEST run initially required every
+pre-execution gate—including the $1.50 conservative cost cap—to pass. If a gate failed, no paid call
+was made and the blocked state was preserved as project history.
 
 **Observation:** the complete zero-network planner estimated a conservative maximum cost of
 $2.108292 for the unchanged 120 requests, above the $1.50 cap. **Decision:** stop before the first
 TEST request. **Reason:** increasing the cap or shrinking the existing output allowances would
 change a frozen operational constraint merely to force execution. **Consequence:** Phase 2 is
 `BLOCKED BEFORE TEST`; the manifest and methodology remain frozen and no TEST result exists.
+
+**Observation:** the human operator subsequently authorized a $3.00 cap as a budget-only change.
+**Decision:** retain the frozen methodology and rerun the complete preflight unchanged. **Reason:**
+the $2.108292 conservative maximum now fits within explicit authorization. **Consequence:** every
+zero-call gate passed, but the execution environment rejected the paid data-export action before
+the first provider request. TEST remains `BLOCKED BEFORE TEST`; no semantics, usage, or cost were
+fabricated.
 
 Navigation and stable definitions live in [docs/INDEX.md](docs/INDEX.md).

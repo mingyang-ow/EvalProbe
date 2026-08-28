@@ -13,6 +13,7 @@ REPOSITORY_ROOT = Path(__file__).parents[1]
 
 def test_frozen_test_config_and_manifest_identity_are_exact() -> None:
     config = load_phase2_config(REPOSITORY_ROOT / "configs/phase2.yaml")
+    assert config["budget"]["hard_cap_usd"] == 3.0
     manifest_path = REPOSITORY_ROOT / config["frozen_pilot"]["path"]
     rows = [json.loads(line) for line in manifest_path.read_text().splitlines()]
 
