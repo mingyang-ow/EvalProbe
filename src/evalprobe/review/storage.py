@@ -76,18 +76,33 @@ def review_summary(decisions: list[Adjudication]) -> dict[str, Any]:
     phase1 = [
         decision for decision in decisions if decision.review_kind == ReviewKind.JUDGE_DISAGREEMENT
     ]
-    audit_statuses = Counter(decision.sentence_audit_status for decision in phase0)
-    failure_types = Counter(decision.failure_type for decision in phase0 if decision.failure_type)
     classifications = Counter(decision.classification for decision in phase1)
-    return {
-        "phase0_sentence_audit": {
-            "reviewed_count": len(phase0),
+
+    def sentence_audit_counts(items: list[Adjudication]) -> dict[str, Any]:
+        audit_statuses = Counter(decision.sentence_audit_status for decision in items)
+        failure_types = Counter(
+            decision.failure_type for decision in items if decision.failure_type
+        )
+        return {
+            "reviewed_count": len(items),
             "status_counts": {
                 status.value: audit_statuses[status.value] for status in SentenceAuditStatus
             },
             "failure_type_counts": {
-                failure.value: failure_types[failure.value] for failure in SentenceAuditFailureType
+                failure.value: failure_types[failure.value]
+                for failure in SentenceAuditFailureType
             },
+        }
+
+    return {
+        "phase0_sentence_audit": sentence_audit_counts(phase0),
+        "phase0_sentence_audit_versions": {
+            "sentence-v1": sentence_audit_counts(
+                [decision for decision in phase0 if decision.run_id == "phase0-sentence-audit-v1"]
+            ),
+            "sentence-v2": sentence_audit_counts(
+                [decision for decision in phase0 if decision.run_id == "phase0-segmentation-v2"]
+            ),
         },
         "phase1a_disagreements": {
             "reviewed_count": len(phase1),

@@ -107,6 +107,42 @@ def test_persisted_enum_values_and_safe_summary_are_validated() -> None:
     assert summary["methodological_decision"] == "HUMAN_REVIEW_REQUIRED"
 
 
+def test_safe_summary_reports_sentence_audit_versions_separately() -> None:
+    decisions = [
+        Adjudication.create(
+            identity=ReviewIdentity(run_id, record_id, "sentence_audit"),
+            source_id="source",
+            review_kind=ReviewKind.SENTENCE_AUDIT,
+            sentence_audit_status=status,
+            failure_type=(
+                SentenceAuditFailureType.SEGMENTATION_DEFECT
+                if status == SentenceAuditStatus.FAIL
+                else None
+            ),
+            reviewed_at="now",
+        )
+        for run_id, record_id, status in (
+            ("phase0-sentence-audit-v1", "v1-pass", SentenceAuditStatus.PASS),
+            ("phase0-sentence-audit-v1", "v1-fail", SentenceAuditStatus.FAIL),
+            ("phase0-segmentation-v2", "v2-pass", SentenceAuditStatus.PASS),
+        )
+    ]
+
+    summary = review_summary(decisions)
+
+    assert summary["phase0_sentence_audit"]["reviewed_count"] == 3
+    assert summary["phase0_sentence_audit_versions"]["sentence-v1"]["status_counts"] == {
+        "PASS": 1,
+        "PASS_WITH_LIMITATION": 0,
+        "FAIL": 1,
+    }
+    assert summary["phase0_sentence_audit_versions"]["sentence-v2"]["status_counts"] == {
+        "PASS": 1,
+        "PASS_WITH_LIMITATION": 0,
+        "FAIL": 0,
+    }
+
+
 def test_review_status_filtering_uses_persisted_identity() -> None:
     reviewed_target = ReviewTarget(
         ReviewIdentity("run", "one", "whole"),

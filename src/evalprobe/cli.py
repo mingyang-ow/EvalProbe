@@ -238,11 +238,12 @@ def _run_review(args: argparse.Namespace) -> int:
     if args.review_command == "summary":
         summary = review_summary(load_adjudications(args.adjudications))
         write_safe_json(args.output, summary)
-        phase0 = summary["phase0_sentence_audit"]
+        phase0_versions = summary["phase0_sentence_audit_versions"]
         phase1 = summary["phase1a_disagreements"]
-        print("Phase 0 sentence audit")
-        for status, count in phase0["status_counts"].items():
-            print(f"{status}: {count}")
+        for version, phase0 in phase0_versions.items():
+            print(f"Phase 0 sentence audit ({version})")
+            for status, count in phase0["status_counts"].items():
+                print(f"{status}: {count}")
         print("Phase 1A disagreements")
         for classification, count in phase1["classification_counts"].items():
             print(f"{classification}: {count}")

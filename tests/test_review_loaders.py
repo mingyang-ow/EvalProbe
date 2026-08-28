@@ -4,7 +4,15 @@ from pathlib import Path
 from evalprobe.review.loaders import (
     load_phase0_audit_records,
     load_phase1_canary_records,
+    phase1_current_local_disagreement_targets,
     phase1_disagreement_targets,
+    phase1_segmentation_repair_outcomes,
+)
+from evalprobe.review.models import (
+    Adjudication,
+    HumanClassification,
+    ReviewIdentity,
+    ReviewKind,
 )
 
 
@@ -199,3 +207,353 @@ def test_phase1_adapter_loads_both_views_and_derives_disagreement_targets(
         ("local", 2),
         ("whole", None),
     ]
+    current_local = phase1_current_local_disagreement_targets(records)
+    assert [
+        (target.identity.view, target.identity.sentence_id, target.mismatch_type)
+        for target in current_local
+    ] == [
+        ("local", 1, "JUDGE_ONLY"),
+        ("local", 2, "REFERENCE_ONLY"),
+    ]
+
+
+def test_phase1_v2_adapter_renders_merged_units_with_matching_v2_labels(
+    tmp_path: Path,
+) -> None:
+    data_dir = tmp_path / "data"
+    answer = "Intro. 1. Unsupported claim. 2. Exact unsupported."
+    _write_jsonl(
+        data_dir / "source_info.jsonl",
+        [
+            {
+                "source_id": "source-12839",
+                "task_type": "QA",
+                "source": "fixture",
+                "source_info": {"question": "Question?", "passages": "Evidence."},
+                "prompt": "fixture",
+            }
+        ],
+    )
+    _write_jsonl(
+        data_dir / "response.jsonl",
+        [
+            {
+                "id": "12839-like",
+                "source_id": "source-12839",
+                "model": "generator",
+                "temperature": 0.0,
+                "labels": [
+                    {
+                        "start": 10,
+                        "end": 28,
+                        "text": "Unsupported claim.",
+                        "label_type": "Baseless Info",
+                        "implicit_true": False,
+                    },
+                    {
+                        "start": 32,
+                        "end": 50,
+                        "text": "Exact unsupported.",
+                        "label_type": "Baseless Info",
+                        "implicit_true": False,
+                    },
+                ],
+                "split": "train",
+                "quality": "good",
+                "response": answer,
+            }
+        ],
+    )
+    manifest = tmp_path / "manifest-v2.jsonl"
+    primary_results = tmp_path / "results-v2.jsonl"
+    phase1a_results = tmp_path / "results-v1.jsonl"
+    features = tmp_path / "features.jsonl"
+    _write_jsonl(
+        manifest,
+        [
+            {
+                "record_id": "12839-like",
+                "source_id": "source-12839",
+                "split": "train",
+                "reference_label": "UNSUPPORTED",
+                "reference_unsupported_sentence_ids": [2, 3],
+                "burden_stratum": "high",
+            }
+        ],
+    )
+    _write_jsonl(
+        primary_results,
+        [
+            {
+                "call_key": "v2:12839-like:local:prompt",
+                "record_id": "12839-like",
+                "source_id": "source-12839",
+                "run_id": "v2",
+                "view": "local",
+                "status": "completed",
+                "semantic_prediction": [2, 3],
+                "prompt_version": "local-grounding-v1",
+                "local_units_version": "sentence-v2",
+            }
+        ],
+    )
+    _write_jsonl(
+        phase1a_results,
+        [
+            {
+                "call_key": "v1:12839-like:whole:prompt",
+                "record_id": "12839-like",
+                "source_id": "source-12839",
+                "run_id": "v1",
+                "view": "whole",
+                "status": "completed",
+                "semantic_prediction": "UNSUPPORTED",
+                "prompt_version": "whole-grounding-v1",
+            },
+            {
+                "call_key": "v1:12839-like:local:prompt",
+                "record_id": "12839-like",
+                "source_id": "source-12839",
+                "run_id": "v1",
+                "view": "local",
+                "status": "completed",
+                "semantic_prediction": [3],
+                "prompt_version": "local-grounding-v1",
+            },
+        ],
+    )
+    _write_jsonl(features, [{"response_id": "12839-like"}])
+
+    records = load_phase1_canary_records(
+        manifest,
+        primary_results,
+        features,
+        data_dir,
+        whole_results_path=phase1a_results,
+        run_id_override="v2",
+        local_units_version="sentence-v2",
+    )
+
+    assert [record.view for record in records] == ["whole", "local"]
+    for record in records:
+        assert record.local_units_version == "sentence-v2"
+        assert [
+            (unit.sentence_id, unit.start, unit.end, unit.text, unit.reference_label)
+            for unit in record.sentences
+        ] == [
+            (1, 0, 6, "Intro.", "SUPPORTED"),
+            (2, 7, 28, "1. Unsupported claim.", "UNSUPPORTED"),
+            (3, 29, 50, "2. Exact unsupported.", "UNSUPPORTED"),
+        ]
+        assert all(unit.text not in {"1.", "2."} for unit in record.sentences)
+    assert records[1].judge_prediction == (2, 3)
+
+
+def test_phase1_v2_adapter_exposes_reference_only_record_without_local_result(
+    tmp_path: Path,
+) -> None:
+    data_dir = _write_corpus(tmp_path)
+    manifest = tmp_path / "manifest.jsonl"
+    primary_results = tmp_path / "results-v2.jsonl"
+    phase1a_results = tmp_path / "results-v1.jsonl"
+    features = tmp_path / "features.jsonl"
+    _write_jsonl(
+        manifest,
+        [
+            {
+                "record_id": "r1",
+                "source_id": "s1",
+                "split": "train",
+                "reference_label": "UNSUPPORTED",
+                "reference_unsupported_sentence_ids": [1],
+                "burden_stratum": "high",
+            }
+        ],
+    )
+    _write_jsonl(
+        primary_results,
+        [
+            {
+                "call_key": "v2:r1:local:prompt",
+                "record_id": "r1",
+                "source_id": "s1",
+                "run_id": "v2",
+                "view": "local",
+                "status": "provider_error",
+            }
+        ],
+    )
+    _write_jsonl(
+        phase1a_results,
+        [
+            {
+                "call_key": "v1:r1:whole:prompt",
+                "record_id": "r1",
+                "source_id": "s1",
+                "run_id": "v1",
+                "view": "whole",
+                "status": "completed",
+                "semantic_prediction": "UNSUPPORTED",
+                "prompt_version": "whole-grounding-v1",
+            },
+            {
+                "call_key": "v1:r1:local:prompt",
+                "record_id": "r1",
+                "source_id": "s1",
+                "run_id": "v1",
+                "view": "local",
+                "status": "completed",
+                "semantic_prediction": [2],
+                "prompt_version": "local-grounding-v1",
+            },
+        ],
+    )
+    _write_jsonl(features, [{"response_id": "r1"}])
+
+    records = load_phase1_canary_records(
+        manifest,
+        primary_results,
+        features,
+        data_dir,
+        whole_results_path=phase1a_results,
+        run_id_override="v2",
+        local_units_version="sentence-v2",
+        allow_missing_local_result=True,
+    )
+
+    local = next(record for record in records if record.view == "local")
+    assert local.judge_prediction is None
+    assert local.prompt_version is None
+    assert local.local_units_version == "sentence-v2"
+    assert [(unit.text, unit.reference_label) for unit in local.sentences] == [
+        ("1. Do thing.", "UNSUPPORTED")
+    ]
+
+
+def test_v1_segmentation_defects_that_become_both_are_resolved_not_queued(
+    tmp_path: Path,
+) -> None:
+    data_dir = tmp_path / "data"
+    answer = "Intro. 1. Unsupported claim. 2. Exact unsupported."
+    _write_jsonl(
+        data_dir / "source_info.jsonl",
+        [
+            {
+                "source_id": "source-12839",
+                "task_type": "QA",
+                "source": "fixture",
+                "source_info": {"question": "Question?", "passages": "Evidence."},
+                "prompt": "fixture",
+            }
+        ],
+    )
+    _write_jsonl(
+        data_dir / "response.jsonl",
+        [
+            {
+                "id": "12839-like",
+                "source_id": "source-12839",
+                "model": "generator",
+                "temperature": 0.0,
+                "labels": [],
+                "split": "train",
+                "quality": "good",
+                "response": answer,
+            }
+        ],
+    )
+    manifest = tmp_path / "manifest.jsonl"
+    primary_results = tmp_path / "results-v2.jsonl"
+    phase1a_results = tmp_path / "results-v1.jsonl"
+    features = tmp_path / "features.jsonl"
+    _write_jsonl(
+        manifest,
+        [
+            {
+                "record_id": "12839-like",
+                "source_id": "source-12839",
+                "split": "train",
+                "reference_label": "UNSUPPORTED",
+                "reference_unsupported_sentence_ids": [2, 3],
+                "burden_stratum": "high",
+            }
+        ],
+    )
+    _write_jsonl(
+        primary_results,
+        [
+            {
+                "call_key": "v2:12839-like:local:prompt",
+                "record_id": "12839-like",
+                "source_id": "source-12839",
+                "run_id": "v2",
+                "view": "local",
+                "status": "completed",
+                "semantic_prediction": [2, 3],
+                "prompt_version": "local-grounding-v1",
+                "local_units_version": "sentence-v2",
+            }
+        ],
+    )
+    _write_jsonl(
+        phase1a_results,
+        [
+            {
+                "call_key": "v1:12839-like:whole:prompt",
+                "record_id": "12839-like",
+                "source_id": "source-12839",
+                "run_id": "v1",
+                "view": "whole",
+                "status": "completed",
+                "semantic_prediction": "UNSUPPORTED",
+                "prompt_version": "whole-grounding-v1",
+            }
+        ],
+    )
+    _write_jsonl(features, [{"response_id": "12839-like"}])
+    records = load_phase1_canary_records(
+        manifest,
+        primary_results,
+        features,
+        data_dir,
+        whole_results_path=phase1a_results,
+        run_id_override="v2",
+        local_units_version="sentence-v2",
+        allow_missing_local_result=True,
+    )
+    decisions = [
+        Adjudication.create(
+            identity=ReviewIdentity("train-canary-v1", "12839-like", "local", sentence_id),
+            source_id="source-12839",
+            review_kind=ReviewKind.JUDGE_DISAGREEMENT,
+            classification=HumanClassification.SEGMENTATION_DEFECT,
+            reviewed_at="2026-08-28T00:00:00+00:00",
+        )
+        for sentence_id in (2, 4)
+    ]
+    decisions.append(
+        Adjudication.create(
+            identity=ReviewIdentity("train-canary-v1", "12839-like", "whole"),
+            source_id="source-12839",
+            review_kind=ReviewKind.JUDGE_DISAGREEMENT,
+            classification=HumanClassification.SEGMENTATION_DEFECT,
+            reviewed_at="2026-08-28T00:00:00+00:00",
+        )
+    )
+
+    outcomes = phase1_segmentation_repair_outcomes(records, decisions)
+    assert [
+        (
+            outcome.view,
+            outcome.old_sentence_id,
+            outcome.new_sentence_id,
+            outcome.current_category,
+            outcome.status,
+        )
+        for outcome in outcomes
+    ] == [
+        ("local", 2, 2, "BOTH", "RESOLVED_BY_METHODOLOGY_REPAIR"),
+        ("local", 4, 3, "BOTH", "RESOLVED_BY_METHODOLOGY_REPAIR"),
+        ("whole", None, None, "WHOLE_VERDICT", "HISTORICAL_V1_ONLY"),
+    ]
+    assert phase1_current_local_disagreement_targets(records) == []

@@ -102,6 +102,7 @@ class ReviewRecord:
     spans: tuple[HallucinationSpan, ...]
     reference_verdict: str
     reference_unsupported_sentence_ids: tuple[int, ...]
+    local_units_version: str = "sentence-v1"
     judge_prediction: str | tuple[int, ...] | None = None
     false_positive_sentence_ids: tuple[int, ...] = ()
     false_negative_sentence_ids: tuple[int, ...] = ()
@@ -123,6 +124,18 @@ class ReviewTarget:
     source_id: str
     kind: ReviewKind
     mismatch_type: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class MethodologyRepairOutcome:
+    historical_review_id: str
+    record_id: str
+    source_id: str
+    view: str
+    old_sentence_id: int | None
+    new_sentence_id: int | None
+    current_category: str
+    status: str
 
 
 @dataclass(frozen=True, slots=True)

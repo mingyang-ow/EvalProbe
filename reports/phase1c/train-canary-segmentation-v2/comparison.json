@@ -1,0 +1,366 @@
+{
+  "aggregate": {
+    "exact_agreement_after": 2,
+    "exact_agreement_before": 2,
+    "false_negative_count_after": 0,
+    "false_negative_count_before": 2,
+    "false_positive_count_after": 7,
+    "false_positive_count_before": 8
+  },
+  "configured_cap_usd": 0.25,
+  "interpretation": "TRAIN-only six-record methodology validation; not a performance estimate",
+  "local_calls": {
+    "completed": 6,
+    "planned": 6
+  },
+  "local_units_versions": {
+    "after": "sentence-v2",
+    "before": "sentence-v1"
+  },
+  "official_benchmark_labels_modified": false,
+  "phase_status": "READY FOR HUMAN RE-REVIEW",
+  "prompt_versions": {
+    "local": "local-grounding-v1",
+    "whole": "whole-grounding-v1"
+  },
+  "prompts_unchanged": true,
+  "record_12839": {
+    "detached_markers_removed": true,
+    "exact_match_after": false,
+    "exact_match_before": false,
+    "false_negatives_after": [],
+    "false_negatives_before": [
+      4,
+      6
+    ],
+    "false_positives_after": [
+      8
+    ],
+    "false_positives_before": [
+      13
+    ],
+    "human_context": "Old units 4 and 6 were segmentation defects; the separate old-unit-13 disagreement was benchmark ambiguity and is not expected to disappear.",
+    "judge_unsupported_after": [
+      3,
+      4,
+      7,
+      8
+    ],
+    "judge_unsupported_before": [
+      5,
+      7,
+      12,
+      13
+    ],
+    "merged_marker_old_unit_ids": [
+      2,
+      4,
+      6,
+      8,
+      10
+    ],
+    "old_to_new_unit_ids": [
+      1,
+      2,
+      2,
+      3,
+      3,
+      4,
+      4,
+      5,
+      5,
+      6,
+      6,
+      7,
+      8
+    ],
+    "record_id": "12839",
+    "reference_unsupported_after": [
+      3,
+      4,
+      7
+    ],
+    "reference_unsupported_before": [
+      4,
+      5,
+      6,
+      7,
+      12
+    ]
+  },
+  "records": [
+    {
+      "exact_match_after": false,
+      "exact_match_before": false,
+      "false_negatives_after": [],
+      "false_negatives_before": [],
+      "false_positives_after": [
+        2,
+        6
+      ],
+      "false_positives_before": [
+        2,
+        6
+      ],
+      "judge_unsupported_after": [
+        2,
+        5,
+        6
+      ],
+      "judge_unsupported_before": [
+        2,
+        5,
+        6
+      ],
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "record_id": "12009",
+      "reference_unsupported_after": [
+        5
+      ],
+      "reference_unsupported_before": [
+        5
+      ]
+    },
+    {
+      "exact_match_after": false,
+      "exact_match_before": false,
+      "false_negatives_after": [],
+      "false_negatives_before": [
+        4,
+        6
+      ],
+      "false_positives_after": [
+        8
+      ],
+      "false_positives_before": [
+        13
+      ],
+      "judge_unsupported_after": [
+        3,
+        4,
+        7,
+        8
+      ],
+      "judge_unsupported_before": [
+        5,
+        7,
+        12,
+        13
+      ],
+      "merged_marker_old_unit_ids": [
+        2,
+        4,
+        6,
+        8,
+        10
+      ],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        2,
+        3,
+        3,
+        4,
+        4,
+        5,
+        5,
+        6,
+        6,
+        7,
+        8
+      ],
+      "record_id": "12839",
+      "reference_unsupported_after": [
+        3,
+        4,
+        7
+      ],
+      "reference_unsupported_before": [
+        4,
+        5,
+        6,
+        7,
+        12
+      ]
+    },
+    {
+      "exact_match_after": false,
+      "exact_match_before": false,
+      "false_negatives_after": [],
+      "false_negatives_before": [],
+      "false_positives_after": [
+        19
+      ],
+      "false_positives_before": [
+        12,
+        19
+      ],
+      "judge_unsupported_after": [
+        19
+      ],
+      "judge_unsupported_before": [
+        12,
+        19
+      ],
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "record_id": "13899",
+      "reference_unsupported_after": [],
+      "reference_unsupported_before": []
+    },
+    {
+      "exact_match_after": true,
+      "exact_match_before": true,
+      "false_negatives_after": [],
+      "false_negatives_before": [],
+      "false_positives_after": [],
+      "false_positives_before": [],
+      "judge_unsupported_after": [],
+      "judge_unsupported_before": [],
+      "merged_marker_old_unit_ids": [
+        2,
+        4,
+        6,
+        8,
+        10,
+        12
+      ],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        2,
+        3,
+        3,
+        4,
+        4,
+        5,
+        5,
+        6,
+        6,
+        7,
+        7,
+        8
+      ],
+      "record_id": "15074",
+      "reference_unsupported_after": [],
+      "reference_unsupported_before": []
+    },
+    {
+      "exact_match_after": true,
+      "exact_match_before": true,
+      "false_negatives_after": [],
+      "false_negatives_before": [],
+      "false_positives_after": [],
+      "false_positives_before": [],
+      "judge_unsupported_after": [],
+      "judge_unsupported_before": [],
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "record_id": "15288",
+      "reference_unsupported_after": [],
+      "reference_unsupported_before": []
+    },
+    {
+      "exact_match_after": false,
+      "exact_match_before": false,
+      "false_negatives_after": [],
+      "false_negatives_before": [],
+      "false_positives_after": [
+        5,
+        7,
+        8
+      ],
+      "false_positives_before": [
+        8,
+        11,
+        12
+      ],
+      "judge_unsupported_after": [
+        3,
+        5,
+        7,
+        8
+      ],
+      "judge_unsupported_before": [
+        5,
+        8,
+        11,
+        12
+      ],
+      "merged_marker_old_unit_ids": [
+        2,
+        4,
+        7,
+        9
+      ],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        2,
+        3,
+        3,
+        4,
+        5,
+        5,
+        6,
+        6,
+        7,
+        8
+      ],
+      "record_id": "16875",
+      "reference_unsupported_after": [
+        3
+      ],
+      "reference_unsupported_before": [
+        5
+      ]
+    }
+  ],
+  "run_id": "train-canary-segmentation-v2",
+  "total_estimated_cost_usd": 0.034891,
+  "usage": {
+    "cache_write_tokens": 1043,
+    "cached_input_tokens": 0,
+    "input_tokens": 4532,
+    "output_tokens": 786,
+    "reasoning_tokens": 662,
+    "total_tokens": 5318
+  },
+  "whole_results": {
+    "strategy": "reused_phase1a_without_provider_calls",
+    "validated_reusable_count": 6
+  }
+}

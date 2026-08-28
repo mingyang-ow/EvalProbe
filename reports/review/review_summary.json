@@ -6,11 +6,39 @@
       "REFERENCE_MAPPING_ARTIFACT": 0,
       "SEGMENTATION_DEFECT": 6
     },
-    "reviewed_count": 20,
+    "reviewed_count": 40,
     "status_counts": {
       "FAIL": 6,
-      "PASS": 14,
+      "PASS": 34,
       "PASS_WITH_LIMITATION": 0
+    }
+  },
+  "phase0_sentence_audit_versions": {
+    "sentence-v1": {
+      "failure_type_counts": {
+        "OTHER": 0,
+        "REFERENCE_MAPPING_ARTIFACT": 0,
+        "SEGMENTATION_DEFECT": 6
+      },
+      "reviewed_count": 20,
+      "status_counts": {
+        "FAIL": 6,
+        "PASS": 14,
+        "PASS_WITH_LIMITATION": 0
+      }
+    },
+    "sentence-v2": {
+      "failure_type_counts": {
+        "OTHER": 0,
+        "REFERENCE_MAPPING_ARTIFACT": 0,
+        "SEGMENTATION_DEFECT": 0
+      },
+      "reviewed_count": 20,
+      "status_counts": {
+        "FAIL": 0,
+        "PASS": 20,
+        "PASS_WITH_LIMITATION": 0
+      }
     }
   },
   "phase1a_disagreements": {

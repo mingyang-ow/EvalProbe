@@ -12,12 +12,15 @@ from evalprobe.review.loaders import (
     load_phase0_audit_records,
     load_phase1_canary_records,
     phase0_review_targets,
+    phase1_current_local_disagreement_targets,
     phase1_disagreement_targets,
+    phase1_segmentation_repair_outcomes,
 )
 from evalprobe.review.models import (
     CLASSIFICATION_DEFINITIONS,
     Adjudication,
     HumanClassification,
+    MethodologyRepairOutcome,
     ReviewKind,
     ReviewRecord,
     ReviewTarget,
@@ -62,6 +65,8 @@ def _load_phase1(version: str) -> list[ReviewRecord]:
             DATA_DIR,
             whole_results_path=PHASE1_DIR / "results.jsonl",
             run_id_override="train-canary-segmentation-v2",
+            local_units_version="sentence-v2",
+            allow_missing_local_result=True,
         )
     return load_phase1_canary_records(
         PHASE1_DIR / "manifest.jsonl",
@@ -96,6 +101,8 @@ def _plain_text_panel(title: str, text: str, height: int) -> None:
 
 def _sentence_category(record: ReviewRecord, sentence_id: int) -> str:
     reference = sentence_id in record.reference_unsupported_sentence_ids
+    if record.judge_prediction is None:
+        return "UNSUPPORTED" if reference else "SUPPORTED"
     judge = isinstance(record.judge_prediction, tuple) and sentence_id in record.judge_prediction
     if reference and judge:
         return "BOTH"
@@ -163,6 +170,7 @@ def _render_record(record: ReviewRecord, current_sentence_id: int | None = None)
         st.badge(f"Source {record.source_id}", color="gray")
         st.badge(record.split.upper(), color="gray")
         st.badge(record.view.upper(), color="primary")
+        st.badge(record.local_units_version, color="violet")
         if record.prompt_version:
             st.badge(record.prompt_version, color="violet")
     if record.record_id == "12839":
@@ -176,12 +184,23 @@ def _render_record(record: ReviewRecord, current_sentence_id: int | None = None)
             st.badge(f"Reference: {record.reference_verdict}", color="orange")
             st.badge(f"Judge: {record.judge_prediction}", color="violet")
     elif record.view == "local":
-        st.caption(
-            f"Reference unsupported: {list(record.reference_unsupported_sentence_ids)} · "
-            f"Judge unsupported: {list(record.judge_prediction or ())} · "
-            f"False positives: {list(record.false_positive_sentence_ids)} · "
-            f"False negatives: {list(record.false_negative_sentence_ids)}"
-        )
+        if record.judge_prediction is None:
+            st.info(
+                "The Phase 1C local judge result is unavailable. Showing deterministic "
+                "sentence-v2 units and official reference labels only.",
+                icon=":material/info:",
+            )
+            st.caption(
+                f"Reference unsupported: {list(record.reference_unsupported_sentence_ids)} · "
+                "Judge unsupported: unavailable"
+            )
+        else:
+            st.caption(
+                f"Reference unsupported: {list(record.reference_unsupported_sentence_ids)} · "
+                f"Judge unsupported: {list(record.judge_prediction)} · "
+                f"False positives: {list(record.false_positive_sentence_ids)} · "
+                f"False negatives: {list(record.false_negative_sentence_ids)}"
+            )
     else:
         st.caption(
             f"Reference: {record.reference_verdict} · unsupported sentence IDs: "
@@ -200,11 +219,15 @@ def _render_record(record: ReviewRecord, current_sentence_id: int | None = None)
 
 
 def _render_version_comparison(before: ReviewRecord, after: ReviewRecord) -> None:
+    if before.local_units_version != "sentence-v1":
+        raise ValueError("Comparison before-record is not sentence-v1")
+    if after.local_units_version != "sentence-v2":
+        raise ValueError("Comparison after-record is not sentence-v2")
     with st.expander("Sentence-v1 / sentence-v2 comparison", expanded=False):
         before_column, after_column = st.columns(2, gap="medium")
         for column, title, record in (
-            (before_column, "sentence-v1", before),
-            (after_column, "sentence-v2", after),
+            (before_column, before.local_units_version, before),
+            (after_column, after.local_units_version, after),
         ):
             with column:
                 st.subheader(title)
@@ -246,6 +269,37 @@ def _render_historical_context(target: ReviewTarget, decisions: dict[str, Adjudi
                 st.text(decision.note)
 
 
+def _render_methodology_repair_outcomes(
+    outcomes: list[MethodologyRepairOutcome],
+) -> None:
+    with st.container(border=True):
+        st.subheader("Historical v1 methodology outcomes")
+        st.caption(
+            "These are derived statuses, not new human classifications. Historical v1 "
+            "adjudications remain unchanged."
+        )
+        for outcome in outcomes:
+            color = {
+                "RESOLVED_BY_METHODOLOGY_REPAIR": "green",
+                "CURRENT_V2_DISAGREEMENT": "orange",
+                "PENDING_V2_JUDGE_RESULT": "yellow",
+                "HISTORICAL_V1_ONLY": "gray",
+            }[outcome.status]
+            with st.container(border=True):
+                with st.container(horizontal=True, gap="xsmall"):
+                    st.badge(f"Record {outcome.record_id}", color="blue")
+                    st.badge(outcome.view.upper(), color="gray")
+                    st.badge(outcome.status, color=color)
+                if outcome.old_sentence_id is not None:
+                    st.caption(
+                        f"v1 sentence {outcome.old_sentence_id} → "
+                        f"v2 sentence {outcome.new_sentence_id} · "
+                        f"current category: {outcome.current_category}"
+                    )
+                else:
+                    st.caption(f"Current category: {outcome.current_category}")
+
+
 def _render_progress(
     targets: list[ReviewTarget], decisions: dict[str, Adjudication], kind: ReviewKind
 ) -> None:
@@ -254,11 +308,11 @@ def _render_progress(
         st.metric("Reviewed", f"{reviewed} / {len(targets)}", border=True)
         st.metric("Remaining", len(targets) - reviewed, border=True)
     st.progress(reviewed / len(targets) if targets else 0.0)
-    target_run_ids = {target.identity.run_id for target in targets}
+    target_review_ids = {target.identity.review_id for target in targets}
     relevant = [
         decision
         for decision in decisions.values()
-        if decision.review_kind == kind and decision.run_id in target_run_ids
+        if decision.review_kind == kind and decision.review_id in target_review_ids
     ]
     if kind == ReviewKind.SENTENCE_AUDIT:
         counts = Counter(decision.sentence_audit_status for decision in relevant)
@@ -432,12 +486,6 @@ with st.sidebar:
         key="segmentation_version",
         width="stretch",
     )
-    focused_re_review = st.toggle(
-        "Focused re-review queue",
-        value=True,
-        disabled=mode != MODE_DISAGREEMENT or segmentation_version != "sentence-v2",
-        help="Prior segmentation-defect records and required record 12839.",
-    )
     st.caption("No API key is accepted. Experiment execution is a separate CLI workflow.")
 
 try:
@@ -463,15 +511,18 @@ try:
         _save_sentence_audit_form(target, decisions.get(target.identity.review_id))
     else:
         phase1_records = _load_phase1(str(segmentation_version))
-        disagreement_targets = phase1_disagreement_targets(phase1_records)
-        if focused_re_review and segmentation_version == "sentence-v2":
-            disagreement_targets = [
-                target
-                for target in disagreement_targets
-                if target.identity.record_id in {"12839", "13899"}
-            ]
+        methodology_outcomes: list[MethodologyRepairOutcome] = []
+        if segmentation_version == "sentence-v2":
+            methodology_outcomes = phase1_segmentation_repair_outcomes(
+                phase1_records, list(decisions.values())
+            )
+            disagreement_targets = phase1_current_local_disagreement_targets(phase1_records)
+        else:
+            disagreement_targets = phase1_disagreement_targets(phase1_records)
         record_by_key = {(record.record_id, record.view): record for record in phase1_records}
         if mode == MODE_DISAGREEMENT:
+            if methodology_outcomes:
+                _render_methodology_repair_outcomes(methodology_outcomes)
             _render_progress(
                 disagreement_targets,
                 decisions,
@@ -483,7 +534,10 @@ try:
                 str(review_status),
             )
             if not targets:
-                st.info("No review items match the current status filter.")
+                st.info(
+                    "No current v2 REFERENCE ONLY or JUDGE ONLY items match the queue. "
+                    "Resolved historical targets require no new classification."
+                )
                 st.stop()
             target = _render_target_navigation(targets, "phase1_target")
             record = record_by_key[(target.identity.record_id, target.identity.view)]

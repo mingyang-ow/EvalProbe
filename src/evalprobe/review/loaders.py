@@ -10,6 +10,7 @@ from evalprobe.review.diagnostics import suspicious_unit_reasons
 from evalprobe.review.models import (
     Adjudication,
     HallucinationSpan,
+    MethodologyRepairOutcome,
     ReviewIdentity,
     ReviewKind,
     ReviewRecord,
@@ -138,6 +139,7 @@ def load_phase0_audit_records(manual_audit_path: Path, data_dir: Path) -> list[R
                 spans=_spans(row.get("annotations")),
                 reference_verdict=str(row["reference_label"]),
                 reference_unsupported_sentence_ids=tuple(unsupported_ids),
+                local_units_version=str(row.get("local_units_version", "sentence-v1")),
                 locality=str(row["locality"]),
                 hallucination_burden=float(row["hallucination_burden"]),
             )
@@ -152,18 +154,29 @@ def load_phase1_canary_records(
     data_dir: Path,
     whole_results_path: Path | None = None,
     run_id_override: str | None = None,
+    local_units_version: str = "sentence-v1",
+    allow_missing_local_result: bool = False,
 ) -> list[ReviewRecord]:
+    if local_units_version not in {"sentence-v1", "sentence-v2"}:
+        raise ValueError(f"Unknown local-units version: {local_units_version}")
     manifest = _read_jsonl(manifest_path)
-    results = _read_jsonl(results_path)
-    if whole_results_path is not None:
-        results = [*_read_jsonl(whole_results_path), *results]
+    primary_results = _read_jsonl(results_path)
+    whole_results = (
+        _read_jsonl(whole_results_path) if whole_results_path is not None else primary_results
+    )
     features = _read_jsonl(feature_path)
     source_by_id, response_by_id = _corpus_indexes(data_dir)
     feature_by_id = {str(feature["response_id"]): feature for feature in features}
-    latest_results = {str(result["call_key"]): result for result in results}
-    completed_by_record_view = {
+    latest_primary = {str(result["call_key"]): result for result in primary_results}
+    completed_primary = {
         (str(result["record_id"]), str(result["view"])): result
-        for result in latest_results.values()
+        for result in latest_primary.values()
+        if result.get("status") == "completed"
+    }
+    latest_whole = {str(result["call_key"]): result for result in whole_results}
+    completed_whole = {
+        (str(result["record_id"]), str(result["view"])): result
+        for result in latest_whole.values()
         if result.get("status") == "completed"
     }
     records: list[ReviewRecord] = []
@@ -181,52 +194,61 @@ def load_phase1_canary_records(
         reference_ids = tuple(
             sorted(int(value) for value in reference["reference_unsupported_sentence_ids"])
         )
+        segmentation = segment_local_units(
+            answer,
+            local_units_version,  # type: ignore[arg-type]
+        )
+        sentence_units = tuple(
+            SentenceUnit(
+                sentence_id=index,
+                start=sentence.start,
+                end=sentence.end,
+                text=answer[sentence.start : sentence.end],
+                reference_label=("UNSUPPORTED" if index in reference_ids else "SUPPORTED"),
+                suspicious_reasons=suspicious_unit_reasons(answer[sentence.start : sentence.end]),
+            )
+            for index, sentence in enumerate(segmentation.units, start=1)
+        )
         feature = feature_by_id.get(record_id, {})
         for view in ("whole", "local"):
-            result = completed_by_record_view.get((record_id, view))
+            result_pool = completed_whole if view == "whole" else completed_primary
+            result = result_pool.get((record_id, view))
             if result is None:
-                raise ValueError(f"Missing completed {view} result for canary record {record_id}")
-            prediction = result.get("semantic_prediction")
-            local_units_version = (
-                str(result.get("local_units_version", "sentence-v1"))
-                if view == "local"
-                else "sentence-v1"
-            )
-            segmentation = segment_local_units(
-                answer,
-                local_units_version,  # type: ignore[arg-type]
-            )
-            sentence_units = tuple(
-                SentenceUnit(
-                    sentence_id=index,
-                    start=sentence.start,
-                    end=sentence.end,
-                    text=answer[sentence.start : sentence.end],
-                    reference_label=("UNSUPPORTED" if index in reference_ids else "SUPPORTED"),
-                    suspicious_reasons=suspicious_unit_reasons(
-                        answer[sentence.start : sentence.end]
-                    ),
-                )
-                for index, sentence in enumerate(segmentation.units, start=1)
-            )
+                if view != "local" or not allow_missing_local_result:
+                    raise ValueError(
+                        f"Missing completed {view} result for canary record {record_id}"
+                    )
+                if run_id_override is None:
+                    raise ValueError("A run ID is required for a missing local review result")
+            if view == "local" and result is not None:
+                result_units_version = str(result.get("local_units_version", "sentence-v1"))
+                if result_units_version != local_units_version:
+                    raise ValueError(
+                        f"Local result methodology mismatch for canary record {record_id}: "
+                        f"expected {local_units_version}, found {result_units_version}"
+                    )
+            prediction = result.get("semantic_prediction") if result is not None else None
             false_positives: tuple[int, ...] = ()
             false_negatives: tuple[int, ...] = ()
             if view == "local":
-                if not isinstance(prediction, list) or any(
+                if prediction is None:
+                    normalized_prediction = None
+                elif not isinstance(prediction, list) or any(
                     type(value) is not int for value in prediction
                 ):
                     raise ValueError(f"Canary record {record_id} has invalid local prediction")
-                predicted_ids = tuple(sorted(prediction))
-                false_positives = tuple(sorted(set(predicted_ids) - set(reference_ids)))
-                false_negatives = tuple(sorted(set(reference_ids) - set(predicted_ids)))
-                normalized_prediction: str | tuple[int, ...] = predicted_ids
+                else:
+                    predicted_ids = tuple(sorted(prediction))
+                    false_positives = tuple(sorted(set(predicted_ids) - set(reference_ids)))
+                    false_negatives = tuple(sorted(set(reference_ids) - set(predicted_ids)))
+                    normalized_prediction = predicted_ids
             else:
                 if prediction not in {"SUPPORTED", "UNSUPPORTED"}:
                     raise ValueError(f"Canary record {record_id} has invalid whole prediction")
                 normalized_prediction = str(prediction)
             records.append(
                 ReviewRecord(
-                    run_id=run_id_override or str(result["run_id"]),
+                    run_id=run_id_override or str(result["run_id"]),  # type: ignore[index]
                     record_id=record_id,
                     source_id=source_id,
                     split=str(reference["split"]),
@@ -238,10 +260,11 @@ def load_phase1_canary_records(
                     spans=_spans(response.get("labels")),
                     reference_verdict=str(reference["reference_label"]),
                     reference_unsupported_sentence_ids=reference_ids,
+                    local_units_version=local_units_version,
                     judge_prediction=normalized_prediction,
                     false_positive_sentence_ids=false_positives,
                     false_negative_sentence_ids=false_negatives,
-                    prompt_version=str(result["prompt_version"]),
+                    prompt_version=(str(result["prompt_version"]) if result is not None else None),
                     locality=(str(feature["locality"]) if "locality" in feature else None),
                     hallucination_burden=(
                         float(feature["hallucination_burden"])
@@ -302,6 +325,84 @@ def phase1_disagreement_targets(records: list[ReviewRecord]) -> list[ReviewTarge
             target.identity.record_id,
             target.identity.view,
             target.identity.sentence_id or 0,
+        ),
+    )
+
+
+def phase1_current_local_disagreement_targets(
+    records: list[ReviewRecord],
+) -> list[ReviewTarget]:
+    return [
+        target
+        for target in phase1_disagreement_targets(records)
+        if target.mismatch_type in {"REFERENCE_ONLY", "JUDGE_ONLY"}
+    ]
+
+
+def phase1_segmentation_repair_outcomes(
+    records: list[ReviewRecord], adjudications: list[Adjudication]
+) -> list[MethodologyRepairOutcome]:
+    """Explain historical v1 segmentation defects without creating review targets."""
+    record_by_key = {(record.record_id, record.view): record for record in records}
+    outcomes: list[MethodologyRepairOutcome] = []
+    for decision in adjudications:
+        if decision.run_id != "train-canary-v1" or decision.classification != "SEGMENTATION_DEFECT":
+            continue
+        record = record_by_key.get((decision.record_id, decision.view))
+        if record is None:
+            continue
+        sentence_id = decision.sentence_id
+        if decision.view == "local" and sentence_id is not None:
+            mapping = segment_local_units(record.answer, "sentence-v2").old_to_new
+            if sentence_id > len(mapping):
+                raise ValueError(
+                    f"Historical sentence ID is out of range for record {decision.record_id}"
+                )
+            sentence_id = mapping[sentence_id - 1]
+        if decision.view != "local":
+            category = "WHOLE_VERDICT"
+            status = "HISTORICAL_V1_ONLY"
+        elif record.judge_prediction is None:
+            category = "V2_JUDGE_UNAVAILABLE"
+            status = "PENDING_V2_JUDGE_RESULT"
+        else:
+            assert sentence_id is not None
+            reference = sentence_id in record.reference_unsupported_sentence_ids
+            judge = (
+                isinstance(record.judge_prediction, tuple)
+                and sentence_id in record.judge_prediction
+            )
+            if reference and judge:
+                category = "BOTH"
+            elif reference:
+                category = "REFERENCE_ONLY"
+            elif judge:
+                category = "JUDGE_ONLY"
+            else:
+                category = "NEITHER"
+            status = (
+                "RESOLVED_BY_METHODOLOGY_REPAIR"
+                if category in {"BOTH", "NEITHER"}
+                else "CURRENT_V2_DISAGREEMENT"
+            )
+        outcomes.append(
+            MethodologyRepairOutcome(
+                historical_review_id=decision.review_id,
+                record_id=record.record_id,
+                source_id=record.source_id,
+                view=record.view,
+                old_sentence_id=decision.sentence_id,
+                new_sentence_id=sentence_id,
+                current_category=category,
+                status=status,
+            )
+        )
+    return sorted(
+        outcomes,
+        key=lambda outcome: (
+            outcome.record_id,
+            outcome.view,
+            outcome.old_sentence_id or 0,
         ),
     )
 
