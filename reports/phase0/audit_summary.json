@@ -1,0 +1,165 @@
+{
+  "annotations": {
+    "implicit_true": {
+      "False": 2081,
+      "True": 846
+    },
+    "label_field_shapes": {
+      "('due_to_null', 'end', 'implicit_true', 'label_type', 'meta', 'start', 'text')": 2927
+    },
+    "label_types": {
+      "Evident Baseless Info": 1562,
+      "Evident Conflict": 423,
+      "Subtle Baseless Info": 893,
+      "Subtle Conflict": 49
+    },
+    "qa_annotations_checked": 2927,
+    "span_failures": [],
+    "span_validation": {
+      "malformed": 0,
+      "matched": 2927,
+      "mismatch": 0,
+      "out_of_range": 0
+    }
+  },
+  "dataset": {
+    "eligible_by_split_reference": {
+      "test:SUPPORTED": 715,
+      "test:UNSUPPORTED": 160,
+      "train:SUPPORTED": 3346,
+      "train:UNSUPPORTED": 1546
+    },
+    "eligible_qa_response_count": 5767,
+    "eligible_qa_split_counts": {
+      "test": 875,
+      "train": 4892
+    },
+    "eligible_reference_counts": {
+      "SUPPORTED": 4061,
+      "UNSUPPORTED": 1706
+    },
+    "generator_distribution_eligible": {
+      "gpt-3.5-turbo-0613": 930,
+      "gpt-4-0613": 961,
+      "llama-2-13b-chat": 984,
+      "llama-2-70b-chat": 982,
+      "llama-2-7b-chat": 971,
+      "mistral-7B-instruct": 939
+    },
+    "generator_distribution_qa_raw": {
+      "gpt-3.5-turbo-0613": 989,
+      "gpt-4-0613": 989,
+      "llama-2-13b-chat": 989,
+      "llama-2-70b-chat": 989,
+      "llama-2-7b-chat": 989,
+      "mistral-7B-instruct": 989
+    },
+    "qa_quality_counts": {
+      "good": 5767,
+      "incorrect_refusal": 143,
+      "truncated": 24
+    },
+    "qa_response_count": 5934,
+    "qa_source_count": 989,
+    "qa_sources": {
+      "MARCO": 989
+    },
+    "qa_split_counts": {
+      "test": 900,
+      "train": 5034
+    },
+    "qa_test_response_count": 900,
+    "response_field_shapes": {
+      "('id', 'labels', 'model', 'quality', 'response', 'source_id', 'split', 'temperature')": 17790
+    },
+    "response_file_sha256": "e4c2e4ac24fff676d8984cc61c35d791612fadc58015335d97dd632375e18073",
+    "response_records": 17790,
+    "responses_per_source_qa_eligible": {
+      "1": 1,
+      "2": 1,
+      "3": 4,
+      "4": 27,
+      "5": 92,
+      "6": 864
+    },
+    "responses_per_source_qa_raw": {
+      "6": 989
+    },
+    "source_field_shapes": {
+      "('prompt', 'source', 'source_id', 'source_info', 'task_type')": 2965
+    },
+    "source_file_sha256": "0dffc26ea9f3c1c3d7c7e8336b56ef1646e3cec876edffcca3c9c624d12d578b",
+    "source_records": 2965,
+    "split_values": {
+      "test": 2700,
+      "train": 15090
+    },
+    "task_types": {
+      "Data2txt": 1033,
+      "QA": 989,
+      "Summary": 943
+    },
+    "unexpected_quality_values": []
+  },
+  "derived": {
+    "affected_sentence_counts_unsupported": {
+      "count": 1706,
+      "max": 29.0,
+      "mean": 2.794255568581477,
+      "median": 2.0,
+      "min": 1.0,
+      "p25": 1.0,
+      "p75": 3.0
+    },
+    "locality": {
+      "DISTRIBUTED": 960,
+      "LOCALIZED": 746,
+      "NONE": 4061
+    },
+    "sentence_counts": {
+      "count": 5767,
+      "max": 50.0,
+      "mean": 8.763828680423098,
+      "median": 7.0,
+      "min": 1.0,
+      "p25": 4.0,
+      "p75": 13.0
+    },
+    "unsupported_hallucination_burden": {
+      "count": 1706,
+      "max": 1.0,
+      "mean": 0.21873978147291498,
+      "median": 0.17043326523663602,
+      "min": 0.0008928571428571428,
+      "p25": 0.08123017747486334,
+      "p75": 0.2965335114133074
+    }
+  },
+  "integrity": {
+    "blockers": [],
+    "duplicate_response_ids": [],
+    "duplicate_source_ids": [],
+    "malformed_or_unexpected_records": []
+  },
+  "pilot": {
+    "max_responses_per_source_id": 1,
+    "quantile_method": "linear interpolation at 1/3 and 2/3",
+    "reference_counts": {
+      "SUPPORTED": 30,
+      "UNSUPPORTED": 30
+    },
+    "seed": 20260828,
+    "selected_total": 60,
+    "threshold_source": "eligible QA train unsupported responses only",
+    "train_tertile_thresholds": {
+      "low_upper": 0.10594594594594595,
+      "medium_upper": 0.24954296160877515
+    },
+    "unique_source_ids": 60,
+    "unsupported_stratum_counts": {
+      "high": 10,
+      "low": 10,
+      "medium": 10
+    }
+  }
+}

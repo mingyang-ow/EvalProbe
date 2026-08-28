@@ -1,0 +1,34 @@
+project: EvalProbe
+
+dataset:
+  name: RAGTruth
+  task: QA
+  eligible_quality:
+    - good
+  known_excluded_quality:
+    - incorrect_refusal
+    - truncated
+
+sampling:
+  seed: 20260828
+  split: test
+  total: 60
+  supported: 30
+  unsupported: 30
+  max_per_source_id: 1
+
+unsupported_strata:
+  method: train_tertiles
+  low: 10
+  medium: 10
+  high: 10
+
+local_units:
+  type: sentence
+  segmenter: evalprobe_rule_v1
+
+reference:
+  implicit_true_is_unsupported: true
+
+manual_audit:
+  size: 20
