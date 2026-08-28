@@ -29,7 +29,9 @@ from evalprobe.review.storage import adjudications_by_id, save_adjudication
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 DATA_DIR = REPOSITORY_ROOT / "data/raw"
 PHASE0_AUDIT = REPOSITORY_ROOT / "reports/phase0/manual_audit.jsonl"
+PHASE0_AUDIT_V2 = REPOSITORY_ROOT / "reports/phase0/manual_audit_v2.jsonl"
 PHASE1_DIR = REPOSITORY_ROOT / "reports/phase1/train-canary-v1"
+PHASE1C_DIR = REPOSITORY_ROOT / "reports/phase1c/train-canary-segmentation-v2"
 PHASE0_FEATURES = REPOSITORY_ROOT / "reports/phase0/derived_features.jsonl"
 ADJUDICATIONS = REPOSITORY_ROOT / "reports/review/adjudications.jsonl"
 
@@ -44,13 +46,23 @@ st.set_page_config(
 )
 
 
-@st.cache_data(show_spinner=False, max_entries=2)
-def _load_phase0() -> list[ReviewRecord]:
-    return load_phase0_audit_records(PHASE0_AUDIT, DATA_DIR)
+@st.cache_data(show_spinner=False, max_entries=4)
+def _load_phase0(version: str) -> list[ReviewRecord]:
+    path = PHASE0_AUDIT if version == "sentence-v1" else PHASE0_AUDIT_V2
+    return load_phase0_audit_records(path, DATA_DIR)
 
 
-@st.cache_data(show_spinner=False, max_entries=2)
-def _load_phase1() -> list[ReviewRecord]:
+@st.cache_data(show_spinner=False, max_entries=4)
+def _load_phase1(version: str) -> list[ReviewRecord]:
+    if version == "sentence-v2":
+        return load_phase1_canary_records(
+            PHASE1C_DIR / "manifest.jsonl",
+            PHASE1C_DIR / "results.jsonl",
+            PHASE0_FEATURES,
+            DATA_DIR,
+            whole_results_path=PHASE1_DIR / "results.jsonl",
+            run_id_override="train-canary-segmentation-v2",
+        )
     return load_phase1_canary_records(
         PHASE1_DIR / "manifest.jsonl",
         PHASE1_DIR / "results.jsonl",
@@ -187,6 +199,53 @@ def _render_record(record: ReviewRecord, current_sentence_id: int | None = None)
     _render_spans(record)
 
 
+def _render_version_comparison(before: ReviewRecord, after: ReviewRecord) -> None:
+    with st.expander("Sentence-v1 / sentence-v2 comparison", expanded=False):
+        before_column, after_column = st.columns(2, gap="medium")
+        for column, title, record in (
+            (before_column, "sentence-v1", before),
+            (after_column, "sentence-v2", after),
+        ):
+            with column:
+                st.subheader(title)
+                st.caption(
+                    f"{len(record.sentences)} units · reference unsupported "
+                    f"{list(record.reference_unsupported_sentence_ids)}"
+                )
+                for sentence in record.sentences:
+                    with st.container(border=True):
+                        st.caption(
+                            f"Sentence {sentence.sentence_id} · {sentence.reference_label} · "
+                            f"offsets {sentence.start}:{sentence.end}"
+                        )
+                        st.text(sentence.text)
+
+
+def _render_historical_context(target: ReviewTarget, decisions: dict[str, Adjudication]) -> None:
+    historical = [
+        decision
+        for decision in decisions.values()
+        if decision.record_id == target.identity.record_id
+        and decision.run_id != target.identity.run_id
+    ]
+    if not historical:
+        return
+    with st.expander("Historical v1 adjudication", expanded=True):
+        for decision in sorted(historical, key=lambda item: (item.view, item.sentence_id or 0)):
+            outcome = (
+                decision.classification
+                or decision.sentence_audit_status
+                or decision.failure_type
+                or "REVIEWED"
+            )
+            st.caption(
+                f"{decision.run_id} · {decision.view} · sentence "
+                f"{decision.sentence_id or 'record'} · {outcome}"
+            )
+            if decision.note:
+                st.text(decision.note)
+
+
 def _render_progress(
     targets: list[ReviewTarget], decisions: dict[str, Adjudication], kind: ReviewKind
 ) -> None:
@@ -195,7 +254,12 @@ def _render_progress(
         st.metric("Reviewed", f"{reviewed} / {len(targets)}", border=True)
         st.metric("Remaining", len(targets) - reviewed, border=True)
     st.progress(reviewed / len(targets) if targets else 0.0)
-    relevant = [decision for decision in decisions.values() if decision.review_kind == kind]
+    target_run_ids = {target.identity.run_id for target in targets}
+    relevant = [
+        decision
+        for decision in decisions.values()
+        if decision.review_kind == kind and decision.run_id in target_run_ids
+    ]
     if kind == ReviewKind.SENTENCE_AUDIT:
         counts = Counter(decision.sentence_audit_status for decision in relevant)
         labels = [f"{status.value}: {counts[status.value]}" for status in SentenceAuditStatus]
@@ -360,12 +424,26 @@ with st.sidebar:
         value=False,
         disabled=mode != MODE_INSPECTOR,
     )
+    segmentation_version = st.segmented_control(
+        "Local-unit methodology",
+        ["sentence-v1", "sentence-v2"],
+        default="sentence-v2",
+        required=True,
+        key="segmentation_version",
+        width="stretch",
+    )
+    focused_re_review = st.toggle(
+        "Focused re-review queue",
+        value=True,
+        disabled=mode != MODE_DISAGREEMENT or segmentation_version != "sentence-v2",
+        help="Prior segmentation-defect records and required record 12839.",
+    )
     st.caption("No API key is accepted. Experiment execution is a separate CLI workflow.")
 
 try:
     decisions = adjudications_by_id(ADJUDICATIONS)
     if mode == MODE_SENTENCE:
-        phase0_records = _load_phase0()
+        phase0_records = _load_phase0(str(segmentation_version))
         all_targets = phase0_review_targets(phase0_records)
         record_by_key = {(record.record_id, record.view): record for record in phase0_records}
         _render_progress(all_targets, decisions, ReviewKind.SENTENCE_AUDIT)
@@ -376,10 +454,22 @@ try:
         target = _render_target_navigation(targets, "phase0_target")
         record = record_by_key[(target.identity.record_id, target.identity.view)]
         _render_record(record)
+        if segmentation_version == "sentence-v2":
+            previous = {item.record_id: item for item in _load_phase0("sentence-v1")}[
+                record.record_id
+            ]
+            _render_version_comparison(previous, record)
+            _render_historical_context(target, decisions)
         _save_sentence_audit_form(target, decisions.get(target.identity.review_id))
     else:
-        phase1_records = _load_phase1()
+        phase1_records = _load_phase1(str(segmentation_version))
         disagreement_targets = phase1_disagreement_targets(phase1_records)
+        if focused_re_review and segmentation_version == "sentence-v2":
+            disagreement_targets = [
+                target
+                for target in disagreement_targets
+                if target.identity.record_id in {"12839", "13899"}
+            ]
         record_by_key = {(record.record_id, record.view): record for record in phase1_records}
         if mode == MODE_DISAGREEMENT:
             _render_progress(
@@ -398,6 +488,12 @@ try:
             target = _render_target_navigation(targets, "phase1_target")
             record = record_by_key[(target.identity.record_id, target.identity.view)]
             _render_record(record, target.identity.sentence_id)
+            if segmentation_version == "sentence-v2":
+                previous = {
+                    (item.record_id, item.view): item for item in _load_phase1("sentence-v1")
+                }[(record.record_id, record.view)]
+                _render_version_comparison(previous, record)
+                _render_historical_context(target, decisions)
             _save_disagreement_form(target, decisions.get(target.identity.review_id))
         else:
             records = [

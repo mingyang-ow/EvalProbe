@@ -94,6 +94,44 @@ def test_phase0_audit_adapter_loads_source_context_and_existing_units(tmp_path: 
     assert records[0].reference_unsupported_sentence_ids == (2,)
     assert "LIST_MARKER_ONLY" in records[0].sentences[0].suspicious_reasons
 
+    v2_path = tmp_path / "manual_audit_v2.jsonl"
+    _write_jsonl(
+        v2_path,
+        [
+            {
+                "run_id": "phase0-segmentation-v2",
+                "response_id": "r1",
+                "source_id": "s1",
+                "split": "train",
+                "response_text": "1. Do thing.",
+                "annotations": [
+                    {
+                        "start": 3,
+                        "end": 12,
+                        "text": "Do thing.",
+                        "label_type": "Baseless Info",
+                        "implicit_true": False,
+                    }
+                ],
+                "sentences": [
+                    {
+                        "start": 0,
+                        "end": 12,
+                        "text": "1. Do thing.",
+                        "reference_label": "UNSUPPORTED",
+                    }
+                ],
+                "reference_label": "UNSUPPORTED",
+                "locality": "LOCALIZED",
+                "hallucination_burden": 0.5,
+            }
+        ],
+    )
+    repaired = load_phase0_audit_records(v2_path, data_dir)
+    assert repaired[0].run_id == "phase0-segmentation-v2"
+    assert len(repaired[0].sentences) == 1
+    assert repaired[0].reference_unsupported_sentence_ids == (1,)
+
 
 def test_phase1_adapter_loads_both_views_and_derives_disagreement_targets(
     tmp_path: Path,

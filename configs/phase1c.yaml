@@ -1,0 +1,60 @@
+project: EvalProbe
+phase: phase1c
+
+canary:
+  run_id: train-canary-segmentation-v2
+  seed: 20260829
+  split: train
+  total: 6
+  supported: 3
+  unsupported: 3
+  unsupported_strata:
+    low: 1
+    medium: 1
+    high: 1
+  max_per_source_id: 1
+  expected_calls: 6
+  expected_record_ids: [12009, 12839, 13899, 15074, 15288, 16875]
+
+judge:
+  provider: openai
+  api: responses
+  model: gpt-5.6-sol
+  reasoning_effort: low
+  automatic_retries: 0
+  fallback_models: 0
+  store_provider_response: false
+  views: [local]
+  max_output_tokens:
+    whole: 512
+    local: 768
+  prompts:
+    whole: whole-grounding-v1
+    local: local-grounding-v1
+
+local_units:
+  version: sentence-v2
+  previous_version: sentence-v1
+
+reuse:
+  phase1a_config: configs/phase1.yaml
+  phase1a_manifest: reports/phase1/train-canary-v1/manifest.jsonl
+  phase1a_results: reports/phase1/train-canary-v1/results.jsonl
+
+budget:
+  hard_cap_usd: 0.25
+  maximum_paid_calls: 6
+  approximate_characters_per_token: 3
+  pricing:
+    effective_date: 2026-08-28
+    source: https://developers.openai.com/api/docs/models/gpt-5.6-sol
+    input_per_million_usd: 4.00
+    cached_input_per_million_usd: 0.40
+    cache_write_per_million_usd: 5.00
+    output_per_million_usd: 20.00
+    long_context_threshold_tokens: 272000
+    long_context_input_multiplier: 2.0
+    long_context_output_multiplier: 1.5
+
+prerequisites:
+  sentence_conversion_human_review: complete

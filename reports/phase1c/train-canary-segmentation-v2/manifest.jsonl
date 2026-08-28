@@ -1,0 +1,6 @@
+{"burden_stratum":"medium","record_id":"12009","reference_label":"UNSUPPORTED","reference_unsupported_sentence_ids":[5],"sentence_count":6,"source_id":"14317","split":"train"}
+{"burden_stratum":"high","record_id":"12839","reference_label":"UNSUPPORTED","reference_unsupported_sentence_ids":[3,4,7],"sentence_count":8,"source_id":"14457","split":"train"}
+{"burden_stratum":"none","record_id":"13899","reference_label":"SUPPORTED","reference_unsupported_sentence_ids":[],"sentence_count":19,"source_id":"15236","split":"train"}
+{"burden_stratum":"none","record_id":"15074","reference_label":"SUPPORTED","reference_unsupported_sentence_ids":[],"sentence_count":8,"source_id":"15433","split":"train"}
+{"burden_stratum":"none","record_id":"15288","reference_label":"SUPPORTED","reference_unsupported_sentence_ids":[],"sentence_count":4,"source_id":"15469","split":"train"}
+{"burden_stratum":"low","record_id":"16875","reference_label":"UNSUPPORTED","reference_unsupported_sentence_ids":[3],"sentence_count":8,"source_id":"12304","split":"train"}

@@ -18,6 +18,16 @@ from evalprobe.phase1.runner import (
     preflight_summary,
     write_dry_run,
 )
+from evalprobe.phase1c.analysis import analyze_phase1c
+from evalprobe.phase1c.diagnostics import (
+    corpus_segmentation_diagnostics,
+    regenerate_phase0_v2,
+)
+from evalprobe.phase1c.workflow import (
+    build_phase1c_plan,
+    load_phase1c_config,
+    reusable_whole_results,
+)
 from evalprobe.review.diagnostics import aggregate_suspicious_units
 from evalprobe.review.storage import load_adjudications, review_summary, write_safe_json
 
@@ -116,6 +126,37 @@ def parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("reports/review/suspicious_units_summary.json"),
     )
+    phase1c = commands.add_parser("phase1c", help="Deterministic segmentation repair rerun")
+    phase1c_commands = phase1c.add_subparsers(dest="phase1c_command", required=True)
+    repaired_diagnostics = phase1c_commands.add_parser("diagnostics")
+    repaired_diagnostics.add_argument("--data-dir", type=Path, default=Path("data/raw"))
+    repaired_diagnostics.add_argument(
+        "--manual-v1", type=Path, default=Path("reports/phase0/manual_audit.jsonl")
+    )
+    repaired_diagnostics.add_argument(
+        "--manual-v2", type=Path, default=Path("reports/phase0/manual_audit_v2.jsonl")
+    )
+    repaired_diagnostics.add_argument(
+        "--adjudications",
+        type=Path,
+        default=Path("reports/review/adjudications.jsonl"),
+    )
+    repaired_diagnostics.add_argument("--output-dir", type=Path, default=Path("reports/phase1c"))
+    repaired_canary = phase1c_commands.add_parser("canary")
+    repaired_mode = repaired_canary.add_mutually_exclusive_group(required=True)
+    repaired_mode.add_argument("--dry-run", action="store_true")
+    repaired_mode.add_argument("--execute", action="store_true")
+    repaired_canary.add_argument("--max-cost-usd", type=float)
+    repaired_canary.add_argument("--config", type=Path, default=Path("configs/phase1c.yaml"))
+    repaired_canary.add_argument("--data-dir", type=Path, default=Path("data/raw"))
+    repaired_canary.add_argument(
+        "--features", type=Path, default=Path("reports/phase0/derived_features.jsonl")
+    )
+    repaired_canary.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("reports/phase1c/train-canary-segmentation-v2"),
+    )
     return root
 
 
@@ -125,6 +166,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_phase1(args)
     if args.command == "review":
         return _run_review(args)
+    if args.command == "phase1c":
+        return _run_phase1c(args)
     config = _load_config(args.config)
     if args.phase0_command == "audit":
         summary = run_audit(args.data_dir, args.output_dir, config)
@@ -213,4 +256,76 @@ def _run_review(args: argparse.Namespace) -> int:
             f"{counts['sentence_unit_count']} sentence units"
         )
     print(f"Diagnostics: {args.output}")
+    return 0
+
+
+def _run_phase1c(args: argparse.Namespace) -> int:
+    repository_root = Path.cwd()
+    if args.phase1c_command == "diagnostics":
+        phase0 = regenerate_phase0_v2(
+            args.manual_v1,
+            args.manual_v2,
+            args.adjudications,
+            args.output_dir / "phase0_v2_summary.json",
+        )
+        corpus = corpus_segmentation_diagnostics(
+            args.data_dir, args.output_dir / "corpus_segmentation_diagnostics.json"
+        )
+        spans = corpus["span_integrity"]
+        print(
+            f"Phase 0 v2: {phase0['record_count']} records; "
+            f"changed prior failures={phase0['previous_failures_changed_count']}."
+        )
+        print(
+            f"Corpus list markers: {corpus['overall']['list_marker_only_before']} -> "
+            f"{corpus['overall']['list_marker_only_after']}."
+        )
+        print(
+            f"Span validation: {spans['matched']} matched; mismatch={spans['mismatch']}; "
+            f"malformed={spans['malformed']}; out_of_range={spans['out_of_range']}."
+        )
+        return 0
+
+    config = load_phase1c_config(args.config)
+    repaired_plan, base_plan = build_phase1c_plan(
+        config, args.data_dir, args.features, repository_root
+    )
+    reuse_path = repository_root / str(config["reuse"]["phase1a_results"])
+    reusable = reusable_whole_results(base_plan, reuse_path)
+    configured_cap = float(config["budget"]["hard_cap_usd"])
+    max_cost = configured_cap if args.max_cost_usd is None else args.max_cost_usd
+    summary = preflight_summary(repaired_plan, max_cost)
+    _print_preflight(summary)
+    print(f"Reusable Phase 1A whole predictions: {len(reusable)}")
+    if args.dry_run:
+        write_dry_run(repaired_plan, args.output_dir, max_cost)
+        print("Dry run complete: 0 network calls; six local calls planned.")
+        return 0
+    if args.max_cost_usd is None:
+        raise SystemExit("--execute requires explicit --max-cost-usd")
+    if not os.environ.get("OPENAI_API_KEY"):
+        raise SystemExit("OPENAI_API_KEY is required for --execute")
+    from openai import OpenAI
+
+    judge = OpenAIResponsesJudge(OpenAI(api_key=os.environ["OPENAI_API_KEY"], max_retries=0))
+    try:
+        results = execute_plan(repaired_plan, judge, args.output_dir, max_cost)
+    except CanaryExecutionError as error:
+        raise SystemExit(str(error)) from error
+    analysis = analyze_phase1c(
+        repaired_plan,
+        base_plan,
+        repository_root / str(config["reuse"]["phase1a_manifest"]),
+        reuse_path,
+        results,
+        reusable,
+        args.output_dir,
+        max_cost,
+    )
+    print(
+        f"Completed local calls: {analysis['local_calls']['completed']} / "
+        f"{analysis['local_calls']['planned']}"
+    )
+    print(f"Estimated API cost: ${analysis['total_estimated_cost_usd']:.6f}")
+    print(f"Comparison: {args.output_dir / 'comparison.md'}")
     return 0

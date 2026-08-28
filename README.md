@@ -17,6 +17,10 @@ derives text-free features, and preserves a frozen 60-response QA test pilot.
 strong judge (`gpt-5.6-sol`, low reasoning) through the OpenAI Responses API. The canary is a
 contract diagnostic, not a performance result, and the frozen TEST pilot remains untouched.
 
+**Phase 1C repairs detached formatting-only list markers.** `sentence-v2` merges a marker with
+its immediately following textual unit while retaining original character offsets. The same six
+TRAIN records are rerun locally; Phase 1A whole predictions are hash-validated and reused.
+
 ```mermaid
 flowchart LR
     A[RAGTruth] --> B[Schema and reference audit]
@@ -78,8 +82,21 @@ The local Streamlit console supports reproducible human inspection of the Phase 
 and Phase 1A judge disagreements without contacting a model. It keeps corpus text local while
 persisting only safe adjudication metadata. See [Human review console](docs/REVIEW_CONSOLE.md).
 
+## Reproduce the Phase 1C methodology check
+
+```bash
+uv run evalprobe phase1c diagnostics
+uv run evalprobe phase1c canary --dry-run
+uv run evalprobe phase1c canary --execute --max-cost-usd 0.25
+uv run streamlit run src/evalprobe/review/app.py
+```
+
+The diagnostics read TRAIN and TEST locally to validate offsets and corpus-wide segmentation,
+but never call a judge. The canary execution path plans exactly six TRAIN local calls. In the
+review console, choose `sentence-v1` or `sentence-v2`; v2 decisions use a separate run identity.
+See [Phase 1C](docs/PHASE1C.md).
+
 ## Next gate
 
-The TRAIN canary and the Phase 0 sentence-conversion sample require recorded human review before
-the prompt can be frozen and the TEST pilot authorized. Repeated tuning against the six canary
-records is intentionally out of scope.
+The repaired Phase 0 sample and prior segmentation-defect items require human v2 re-review before
+the local methodology can be frozen. The frozen TEST pilot remains unauthorized for judge calls.

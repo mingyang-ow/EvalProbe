@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from evalprobe.phase0.sentences import sentence_spans
+from evalprobe.phase0.sentences import segment_local_units
 from evalprobe.phase1.contracts import (
     LOCAL_OUTPUT_SCHEMA,
     WHOLE_OUTPUT_SCHEMA,
@@ -45,6 +45,7 @@ class CanaryCall:
     approximate_input_characters: int
     approximate_input_tokens: int
     estimated_max_cost_usd: float
+    local_units_version: str | None = None
 
     @property
     def call_key(self) -> str:
@@ -59,17 +60,20 @@ class CanaryPlan:
     config: dict[str, Any]
 
 
-def _hash_request(request: ProviderRequest) -> str:
+def _hash_request(request: ProviderRequest, local_units_version: str | None = None) -> str:
+    payload = {
+        "model": request.model,
+        "reasoning_effort": request.reasoning_effort,
+        "prompt_version": request.prompt_version,
+        "prompt_text": request.prompt_text,
+        "model_input": request.model_input,
+        "schema": request.schema,
+        "max_output_tokens": request.max_output_tokens,
+    }
+    if local_units_version is not None:
+        payload["local_units_version"] = local_units_version
     canonical = json.dumps(
-        {
-            "model": request.model,
-            "reasoning_effort": request.reasoning_effort,
-            "prompt_version": request.prompt_version,
-            "prompt_text": request.prompt_text,
-            "model_input": request.model_input,
-            "schema": request.schema,
-            "max_output_tokens": request.max_output_tokens,
-        },
+        payload,
         ensure_ascii=False,
         sort_keys=True,
         separators=(",", ":"),
@@ -87,6 +91,7 @@ def _build_call(
     schema: dict[str, Any],
     schema_version: str,
     pricing: Pricing,
+    local_units_version: str | None = None,
 ) -> CanaryCall:
     judge_config = config["judge"]
     prompt = get_prompt(str(judge_config["prompts"][view]))
@@ -115,20 +120,37 @@ def _build_call(
         view=view,
         schema_version=schema_version,
         request=request,
-        input_hash=_hash_request(request),
+        input_hash=_hash_request(request, local_units_version),
         approximate_input_characters=character_count,
         approximate_input_tokens=approximate_input,
         estimated_max_cost_usd=estimate_max_cost_usd(approximate_input, max_output_tokens, pricing),
+        local_units_version=local_units_version,
     )
 
 
 def build_plan(config: dict[str, Any], data_dir: Path, feature_path: Path) -> CanaryPlan:
-    pricing = Pricing.from_config(config["budget"]["pricing"])
     records = load_canary_records(data_dir, feature_path, int(config["canary"]["seed"]))
+    return build_plan_for_records(config, records)
+
+
+def build_plan_for_records(
+    config: dict[str, Any],
+    records: list[SelectedCanaryRecord],
+) -> CanaryPlan:
+    """Build a canary plan from preselected records without exposing reference data to judges."""
+    pricing = Pricing.from_config(config["budget"]["pricing"])
+    views = tuple(config["judge"].get("views", ("whole", "local")))
+    if not views or any(view not in {"whole", "local"} for view in views):
+        raise ValueError("judge.views must contain whole and/or local")
+    local_units_version = str(config.get("local_units", {}).get("version", "sentence-v1"))
+    if local_units_version not in {"sentence-v1", "sentence-v2"}:
+        raise ValueError("Unknown local-units version")
     calls: list[CanaryCall] = []
     for record in records:
-        whole_input = WholeJudgeInput.from_source(record.source)
-        answer_sentences = sentence_spans(record.source.answer)
+        answer_sentences = segment_local_units(
+            record.source.answer,
+            local_units_version,  # type: ignore[arg-type]
+        ).units
         numbered = tuple(
             NumberedSentence(index, record.source.answer[sentence.start : sentence.end])
             for index, sentence in enumerate(answer_sentences, start=1)
@@ -138,30 +160,34 @@ def build_plan(config: dict[str, Any], data_dir: Path, feature_path: Path) -> Ca
             evidence=record.source.evidence,
             numbered_sentences=numbered,
         )
-        calls.append(
-            _build_call(
-                config=config,
-                reference=record.reference,
-                view="whole",
-                model_input=render_model_input(whole_input),
-                valid_sentence_ids=frozenset(),
-                schema=WHOLE_OUTPUT_SCHEMA,
-                schema_version="whole-output-v1",
-                pricing=pricing,
+        if "whole" in views:
+            whole_input = WholeJudgeInput.from_source(record.source)
+            calls.append(
+                _build_call(
+                    config=config,
+                    reference=record.reference,
+                    view="whole",
+                    model_input=render_model_input(whole_input),
+                    valid_sentence_ids=frozenset(),
+                    schema=WHOLE_OUTPUT_SCHEMA,
+                    schema_version="whole-output-v1",
+                    pricing=pricing,
+                )
             )
-        )
-        calls.append(
-            _build_call(
-                config=config,
-                reference=record.reference,
-                view="local",
-                model_input=render_model_input(local_input),
-                valid_sentence_ids=local_input.sentence_ids,
-                schema=LOCAL_OUTPUT_SCHEMA,
-                schema_version="local-output-v2",
-                pricing=pricing,
+        if "local" in views:
+            calls.append(
+                _build_call(
+                    config=config,
+                    reference=record.reference,
+                    view="local",
+                    model_input=render_model_input(local_input),
+                    valid_sentence_ids=local_input.sentence_ids,
+                    schema=LOCAL_OUTPUT_SCHEMA,
+                    schema_version="local-output-v2",
+                    pricing=pricing,
+                    local_units_version=local_units_version,
+                )
             )
-        )
     plan = CanaryPlan(tuple(records), tuple(calls), pricing, config)
     validate_plan(plan)
     return plan
@@ -188,8 +214,9 @@ def validate_plan(plan: CanaryPlan) -> None:
             raise ValueError("Local request has no valid sentence IDs")
         if "previous_response_id" in call.request.api_kwargs():
             raise ValueError("Judge calls must not share conversation state")
-    if any(views != {"whole", "local"} for views in views_by_record.values()):
-        raise ValueError("Every record requires independent whole and local calls")
+    expected_views = set(config["judge"].get("views", ("whole", "local")))
+    if any(views != expected_views for views in views_by_record.values()):
+        raise ValueError("Every record requires exactly the configured views")
 
 
 def manifest_rows(plan: CanaryPlan) -> list[dict[str, Any]]:
@@ -220,6 +247,7 @@ def preflight_summary(plan: CanaryPlan, max_cost_usd: float) -> dict[str, Any]:
         "mode": "dry_run",
         "model": plan.config["judge"]["model"],
         "reasoning_effort": plan.config["judge"]["reasoning_effort"],
+        "local_units_version": plan.config.get("local_units", {}).get("version", "sentence-v1"),
         "selected_record_count": len(plan.records),
         "selected_split": "train",
         "whole_call_count": sum(call.view == "whole" for call in plan.calls),
@@ -249,6 +277,7 @@ def preflight_summary(plan: CanaryPlan, max_cost_usd: float) -> dict[str, Any]:
                 "view": call.view,
                 "prompt_version": call.request.prompt_version,
                 "schema_version": call.schema_version,
+                "local_units_version": call.local_units_version,
                 "input_hash": call.input_hash,
                 "approximate_input_characters": call.approximate_input_characters,
                 "approximate_input_tokens": call.approximate_input_tokens,
@@ -290,6 +319,7 @@ def _result_envelope(
         "view": call.view,
         "prompt_version": call.request.prompt_version,
         "schema_version": call.schema_version,
+        "local_units_version": call.local_units_version,
         "model_requested": call.request.model,
         "model_returned": outcome.model_returned,
         "reasoning_effort": call.request.reasoning_effort,
@@ -321,6 +351,7 @@ def _budget_guard_envelope(call: CanaryCall, reason: str) -> dict[str, Any]:
         "view": call.view,
         "prompt_version": call.request.prompt_version,
         "schema_version": call.schema_version,
+        "local_units_version": call.local_units_version,
         "model_requested": call.request.model,
         "model_returned": None,
         "reasoning_effort": call.request.reasoning_effort,

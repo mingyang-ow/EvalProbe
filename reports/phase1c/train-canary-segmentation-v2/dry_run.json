@@ -1,0 +1,111 @@
+{
+  "approximate_input_characters": 21435,
+  "approximate_input_tokens": 7447,
+  "calls": [
+    {
+      "approximate_input_characters": 3058,
+      "approximate_input_tokens": 1070,
+      "estimated_max_cost_usd": 0.01964,
+      "input_hash": "3eb65525cd2899d30606c81d8be392a5aecf8091d39d5ef276aea629953aae0a",
+      "local_units_version": "sentence-v2",
+      "max_output_tokens": 768,
+      "prompt_version": "local-grounding-v1",
+      "record_id": "12009",
+      "schema_version": "local-output-v2",
+      "source_id": "14317",
+      "view": "local"
+    },
+    {
+      "approximate_input_characters": 3879,
+      "approximate_input_tokens": 1343,
+      "estimated_max_cost_usd": 0.020732,
+      "input_hash": "2e15fed0fa4ffdc3ece133221af84bf2973997ba257d3f30a2672bd386923de0",
+      "local_units_version": "sentence-v2",
+      "max_output_tokens": 768,
+      "prompt_version": "local-grounding-v1",
+      "record_id": "12839",
+      "schema_version": "local-output-v2",
+      "source_id": "14457",
+      "view": "local"
+    },
+    {
+      "approximate_input_characters": 4768,
+      "approximate_input_tokens": 1640,
+      "estimated_max_cost_usd": 0.02192,
+      "input_hash": "32fb69785e5c4acc2528e682753d02b6633d179465e4e2f8620f35ae45bfad62",
+      "local_units_version": "sentence-v2",
+      "max_output_tokens": 768,
+      "prompt_version": "local-grounding-v1",
+      "record_id": "13899",
+      "schema_version": "local-output-v2",
+      "source_id": "15236",
+      "view": "local"
+    },
+    {
+      "approximate_input_characters": 3681,
+      "approximate_input_tokens": 1277,
+      "estimated_max_cost_usd": 0.020468,
+      "input_hash": "b45c26882d31e122c367b77b19c103a82af98b28eb5dbb5f6a2e9375604dd56e",
+      "local_units_version": "sentence-v2",
+      "max_output_tokens": 768,
+      "prompt_version": "local-grounding-v1",
+      "record_id": "15074",
+      "schema_version": "local-output-v2",
+      "source_id": "15433",
+      "view": "local"
+    },
+    {
+      "approximate_input_characters": 2542,
+      "approximate_input_tokens": 898,
+      "estimated_max_cost_usd": 0.018952,
+      "input_hash": "38826b3d73895e4ea7c93526a0fa6f8b1275f7a6d7d2b4586b28614a425b1c8c",
+      "local_units_version": "sentence-v2",
+      "max_output_tokens": 768,
+      "prompt_version": "local-grounding-v1",
+      "record_id": "15288",
+      "schema_version": "local-output-v2",
+      "source_id": "15469",
+      "view": "local"
+    },
+    {
+      "approximate_input_characters": 3507,
+      "approximate_input_tokens": 1219,
+      "estimated_max_cost_usd": 0.020236,
+      "input_hash": "0bae241ce9453e5cfc684c93867da57c1a2af8d47559583335282d1f9710bb0b",
+      "local_units_version": "sentence-v2",
+      "max_output_tokens": 768,
+      "prompt_version": "local-grounding-v1",
+      "record_id": "16875",
+      "schema_version": "local-output-v2",
+      "source_id": "12304",
+      "view": "local"
+    }
+  ],
+  "estimated_max_cost_usd": 0.121948,
+  "expected_call_count": 6,
+  "hard_spend_limit_usd": 0.25,
+  "independent_whole_local_requests": true,
+  "judge_input_allowlist": [
+    "question",
+    "evidence",
+    "answer_or_numbered_sentences"
+  ],
+  "local_call_count": 6,
+  "local_units_version": "sentence-v2",
+  "max_output_tokens": {
+    "local": 768,
+    "whole": 512
+  },
+  "mode": "dry_run",
+  "model": "gpt-5.6-sol",
+  "network_calls_made": 0,
+  "reasoning_effort": "low",
+  "reference_fields_in_judge_dtos": false,
+  "run_id": "train-canary-segmentation-v2",
+  "selected_record_count": 6,
+  "selected_split": "train",
+  "sentence_conversion_human_review": "complete",
+  "source_ids_unique": true,
+  "structured_output_schemas_validated": true,
+  "whole_call_count": 0
+}

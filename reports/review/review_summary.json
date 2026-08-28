@@ -4,23 +4,23 @@
     "failure_type_counts": {
       "OTHER": 0,
       "REFERENCE_MAPPING_ARTIFACT": 0,
-      "SEGMENTATION_DEFECT": 0
+      "SEGMENTATION_DEFECT": 6
     },
-    "reviewed_count": 0,
+    "reviewed_count": 20,
     "status_counts": {
-      "FAIL": 0,
-      "PASS": 0,
+      "FAIL": 6,
+      "PASS": 14,
       "PASS_WITH_LIMITATION": 0
     }
   },
   "phase1a_disagreements": {
     "classification_counts": {
-      "BENCHMARK_AMBIGUITY": 0,
+      "BENCHMARK_AMBIGUITY": 8,
       "JUDGE_ERROR": 0,
       "REFERENCE_MAPPING_ARTIFACT": 0,
       "RUBRIC_AMBIGUITY": 0,
-      "SEGMENTATION_DEFECT": 0
+      "SEGMENTATION_DEFECT": 3
     },
-    "reviewed_count": 0
+    "reviewed_count": 11
   }
 }

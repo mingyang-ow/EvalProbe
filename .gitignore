@@ -15,6 +15,7 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 reports/phase0/manual_audit.jsonl
+reports/phase0/manual_audit_v2.jsonl
 reports/phase1/**/raw/
 runs/
 reports/review/.*.tmp

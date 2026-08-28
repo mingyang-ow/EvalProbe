@@ -1,0 +1,509 @@
+{
+  "changed_previous_failure_ids": [
+    "11889",
+    "12107",
+    "12878",
+    "14206",
+    "16672",
+    "17606"
+  ],
+  "detached_unsupported_list_markers_after": 0,
+  "historical_adjudications_modified": false,
+  "list_marker_only_after": 0,
+  "list_marker_only_before": 21,
+  "new_review_round": "phase0-segmentation-v2",
+  "previous_failures_changed_count": 6,
+  "previous_segmentation_failure_ids": [
+    "11889",
+    "12107",
+    "12878",
+    "14206",
+    "16672",
+    "17606"
+  ],
+  "record_count": 20,
+  "records": [
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "14814",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 5,
+      "units_before": 5,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 5,
+      "merged_marker_old_unit_ids": [
+        2,
+        4,
+        6,
+        9,
+        11
+      ],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        2,
+        3,
+        3,
+        4,
+        4,
+        5,
+        6,
+        6,
+        7,
+        7,
+        8
+      ],
+      "previously_failed_segmentation": true,
+      "record_id": "12878",
+      "structure_changed": true,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 5,
+      "units_after": 8,
+      "units_before": 13,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "15479",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 7,
+      "units_before": 7,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "17325",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 10,
+      "units_before": 10,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 3,
+      "merged_marker_old_unit_ids": [
+        4,
+        6,
+        8
+      ],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        4,
+        5,
+        5,
+        6,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "previously_failed_segmentation": true,
+      "record_id": "16672",
+      "structure_changed": true,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 3,
+      "units_after": 10,
+      "units_before": 13,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "14987",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 7,
+      "units_before": 7,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 2,
+      "merged_marker_old_unit_ids": [
+        6,
+        8
+      ],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        6,
+        7,
+        7,
+        8
+      ],
+      "previously_failed_segmentation": true,
+      "record_id": "11889",
+      "structure_changed": true,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 2,
+      "units_after": 8,
+      "units_before": 10,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "13850",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 3,
+      "units_before": 3,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "12822",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 5,
+      "units_before": 5,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "16416",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 4,
+      "units_before": 4,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 5,
+      "merged_marker_old_unit_ids": [
+        2,
+        5,
+        7,
+        9,
+        11
+      ],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        2,
+        3,
+        4,
+        4,
+        5,
+        5,
+        6,
+        6,
+        7,
+        7
+      ],
+      "previously_failed_segmentation": true,
+      "record_id": "17606",
+      "structure_changed": true,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 5,
+      "units_after": 7,
+      "units_before": 12,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "14035",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 5,
+      "units_before": 5,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "13560",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 5,
+      "units_before": 5,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "15144",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 4,
+      "units_before": 4,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "12987",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 12,
+      "units_before": 12,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "15058",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 3,
+      "units_before": 3,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "13974",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 3,
+      "units_before": 3,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 2,
+      "merged_marker_old_unit_ids": [
+        2,
+        8
+      ],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "previously_failed_segmentation": true,
+      "record_id": "12107",
+      "structure_changed": true,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 2,
+      "units_after": 11,
+      "units_before": 13,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 0,
+      "merged_marker_old_unit_ids": [],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "previously_failed_segmentation": false,
+      "record_id": "12836",
+      "structure_changed": false,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 0,
+      "units_after": 4,
+      "units_before": 4,
+      "unmerged_marker_old_unit_ids": []
+    },
+    {
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 4,
+      "merged_marker_old_unit_ids": [
+        2,
+        4,
+        6,
+        8
+      ],
+      "old_to_new_unit_ids": [
+        1,
+        2,
+        2,
+        3,
+        3,
+        4,
+        4,
+        5,
+        5,
+        6,
+        7
+      ],
+      "previously_failed_segmentation": true,
+      "record_id": "14206",
+      "structure_changed": true,
+      "suspicious_units_after": 0,
+      "suspicious_units_before": 4,
+      "units_after": 7,
+      "units_before": 11,
+      "unmerged_marker_old_unit_ids": []
+    }
+  ],
+  "run_id": "phase0-segmentation-v2",
+  "same_record_ids_as_v1": true,
+  "suspicious_units_after": 0,
+  "suspicious_units_before": 21,
+  "units_after": 128,
+  "units_before": 149
+}

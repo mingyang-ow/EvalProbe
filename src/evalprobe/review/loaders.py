@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from evalprobe.data.ragtruth import load_dataset
-from evalprobe.phase0.sentences import sentence_spans
+from evalprobe.phase0.sentences import segment_local_units
 from evalprobe.review.diagnostics import suspicious_unit_reasons
 from evalprobe.review.models import (
     Adjudication,
@@ -126,7 +126,7 @@ def load_phase0_audit_records(manual_audit_path: Path, data_dir: Path) -> list[R
             )
         records.append(
             ReviewRecord(
-                run_id="phase0-sentence-audit-v1",
+                run_id=str(row.get("run_id", "phase0-sentence-audit-v1")),
                 record_id=record_id,
                 source_id=source_id,
                 split=str(row["split"]),
@@ -150,9 +150,13 @@ def load_phase1_canary_records(
     results_path: Path,
     feature_path: Path,
     data_dir: Path,
+    whole_results_path: Path | None = None,
+    run_id_override: str | None = None,
 ) -> list[ReviewRecord]:
     manifest = _read_jsonl(manifest_path)
     results = _read_jsonl(results_path)
+    if whole_results_path is not None:
+        results = [*_read_jsonl(whole_results_path), *results]
     features = _read_jsonl(feature_path)
     source_by_id, response_by_id = _corpus_indexes(data_dir)
     feature_by_id = {str(feature["response_id"]): feature for feature in features}
@@ -177,23 +181,34 @@ def load_phase1_canary_records(
         reference_ids = tuple(
             sorted(int(value) for value in reference["reference_unsupported_sentence_ids"])
         )
-        sentence_units = tuple(
-            SentenceUnit(
-                sentence_id=index,
-                start=sentence.start,
-                end=sentence.end,
-                text=answer[sentence.start : sentence.end],
-                reference_label=("UNSUPPORTED" if index in reference_ids else "SUPPORTED"),
-                suspicious_reasons=suspicious_unit_reasons(answer[sentence.start : sentence.end]),
-            )
-            for index, sentence in enumerate(sentence_spans(answer), start=1)
-        )
         feature = feature_by_id.get(record_id, {})
         for view in ("whole", "local"):
             result = completed_by_record_view.get((record_id, view))
             if result is None:
                 raise ValueError(f"Missing completed {view} result for canary record {record_id}")
             prediction = result.get("semantic_prediction")
+            local_units_version = (
+                str(result.get("local_units_version", "sentence-v1"))
+                if view == "local"
+                else "sentence-v1"
+            )
+            segmentation = segment_local_units(
+                answer,
+                local_units_version,  # type: ignore[arg-type]
+            )
+            sentence_units = tuple(
+                SentenceUnit(
+                    sentence_id=index,
+                    start=sentence.start,
+                    end=sentence.end,
+                    text=answer[sentence.start : sentence.end],
+                    reference_label=("UNSUPPORTED" if index in reference_ids else "SUPPORTED"),
+                    suspicious_reasons=suspicious_unit_reasons(
+                        answer[sentence.start : sentence.end]
+                    ),
+                )
+                for index, sentence in enumerate(segmentation.units, start=1)
+            )
             false_positives: tuple[int, ...] = ()
             false_negatives: tuple[int, ...] = ()
             if view == "local":
@@ -211,7 +226,7 @@ def load_phase1_canary_records(
                 normalized_prediction = str(prediction)
             records.append(
                 ReviewRecord(
-                    run_id=str(result["run_id"]),
+                    run_id=run_id_override or str(result["run_id"]),
                     record_id=record_id,
                     source_id=source_id,
                     split=str(reference["split"]),

@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import re
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
 from evalprobe.data.ragtruth import load_dataset
-from evalprobe.phase0.sentences import sentence_spans
+from evalprobe.phase0.sentences import is_formatting_list_marker, sentence_spans
 
-_LIST_MARKER = re.compile(r"(?:\d+|[A-Za-z])[.)\]:-]|[-*+•]")
 SUSPICIOUS_REASON_NAMES = (
     "NUMBER_ONLY",
     "PUNCTUATION_ONLY",
@@ -32,7 +30,7 @@ def suspicious_unit_reasons(text: str) -> tuple[str, ...]:
         reasons.append("NUMBER_ONLY")
     if all(not character.isalnum() for character in stripped):
         reasons.append("PUNCTUATION_ONLY")
-    if _LIST_MARKER.fullmatch(stripped):
+    if is_formatting_list_marker(stripped):
         reasons.append("LIST_MARKER_ONLY")
     if not any(character.isalpha() for character in stripped):
         reasons.append("NO_ALPHABETIC_CHARACTERS")

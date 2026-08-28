@@ -1,0 +1,73 @@
+{
+  "judge_calls_made": 0,
+  "new_diagnostic_warning_record_ids": [],
+  "overall": {
+    "eligible_response_count": 5767,
+    "list_marker_only_after": 0,
+    "list_marker_only_before": 10305,
+    "merged_markers": 10305,
+    "suspicious_after": 4,
+    "suspicious_before": 10309,
+    "units_after": 40236,
+    "units_before": 50541,
+    "unmerged_marker_warnings": 0
+  },
+  "raw_response_text_changed": false,
+  "remaining_suspicious_record_ids": [
+    "12268",
+    "12779",
+    "17537"
+  ],
+  "scope": "eligible good QA TRAIN/TEST responses; read-only segmentation diagnostics",
+  "span_integrity": {
+    "malformed": 0,
+    "matched": 2927,
+    "mismatch": 0,
+    "out_of_range": 0
+  },
+  "splits": {
+    "test": {
+      "eligible_response_count": 875,
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 1203,
+      "merged_markers": 1203,
+      "suspicious_after": 0,
+      "suspicious_before": 1203,
+      "units_after": 5563,
+      "units_before": 6766,
+      "unmerged_marker_warnings": 0
+    },
+    "train": {
+      "eligible_response_count": 4892,
+      "list_marker_only_after": 0,
+      "list_marker_only_before": 9102,
+      "merged_markers": 9102,
+      "suspicious_after": 4,
+      "suspicious_before": 9106,
+      "units_after": 34673,
+      "units_before": 43775,
+      "unmerged_marker_warnings": 0
+    }
+  },
+  "suspicious_reason_counts_after": {
+    "EMPTY": 0,
+    "LIST_MARKER_ONLY": 0,
+    "NO_ALPHABETIC_CHARACTERS": 4,
+    "NUMBER_ONLY": 0,
+    "PUNCTUATION_ONLY": 1,
+    "VERY_SHORT_FORMATTING_TOKEN": 1
+  },
+  "suspicious_reason_counts_before": {
+    "EMPTY": 0,
+    "LIST_MARKER_ONLY": 10305,
+    "NO_ALPHABETIC_CHARACTERS": 10294,
+    "NUMBER_ONLY": 0,
+    "PUNCTUATION_ONLY": 1,
+    "VERY_SHORT_FORMATTING_TOKEN": 10291
+  },
+  "test_data_access": "read_only_diagnostics",
+  "versions": {
+    "after": "sentence-v2",
+    "before": "sentence-v1"
+  }
+}
