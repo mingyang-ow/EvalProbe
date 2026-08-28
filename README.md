@@ -21,6 +21,11 @@ contract diagnostic, not a performance result, and the frozen TEST pilot remains
 its immediately following textual unit while retaining original character offsets. The same six
 TRAIN records are rerun locally; Phase 1A whole predictions are hash-validated and reused.
 
+**TRAIN validation is complete and the methodology is frozen.** Sentence-v2 passed a fresh 20/20
+human audit, and all seven remaining current TRAIN disagreements were adjudicated as benchmark
+ambiguity rather than a segmentation, mapping, rubric, or judge defect. Phase 2 now gates the
+already frozen 60-record TEST pilot without tuning against TEST.
+
 ```mermaid
 flowchart LR
     A[RAGTruth] --> B[Schema and reference audit]
@@ -96,7 +101,16 @@ but never call a judge. The canary execution path plans exactly six TRAIN local 
 review console, choose `sentence-v1` or `sentence-v2`; v2 decisions use a separate run identity.
 See [Phase 1C](docs/PHASE1C.md).
 
-## Next gate
+## Project history and frozen TEST
 
-The repaired Phase 0 sample and prior segmentation-defect items require human v2 re-review before
-the local methodology can be frozen. The frozen TEST pilot remains unauthorized for judge calls.
+The concise reasoning history is in [story.md](story.md), with the lightweight knowledge index at
+[docs/INDEX.md](docs/INDEX.md). The formal [methodology freeze](docs/decisions/methodology-freeze.md)
+records the exact pre-TEST contract. Run the zero-network TEST planner with:
+
+```bash
+uv run evalprobe phase2 --dry-run
+```
+
+Paid TEST execution is permitted only when every recorded gate passes, including the unchanged
+$1.50 conservative cost cap. The frozen dry-run estimated $2.108292, so Phase 2 stopped before any
+provider call. See the [frozen TEST experiment note](docs/experiments/frozen-test.md).

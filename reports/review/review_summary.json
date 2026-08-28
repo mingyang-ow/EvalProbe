@@ -53,7 +53,7 @@
   },
   "phase1c_sentence_v2_disagreements": {
     "classification_counts": {
-      "BENCHMARK_AMBIGUITY": 0,
+      "BENCHMARK_AMBIGUITY": 7,
       "JUDGE_ERROR": 0,
       "REFERENCE_MAPPING_ARTIFACT": 0,
       "RUBRIC_AMBIGUITY": 0,
@@ -63,8 +63,8 @@
       "JUDGE_ONLY": 7,
       "REFERENCE_ONLY": 0
     },
-    "reviewed_count": 0,
+    "reviewed_count": 7,
     "target_count": 7,
-    "unreviewed_count": 7
+    "unreviewed_count": 0
   }
 }

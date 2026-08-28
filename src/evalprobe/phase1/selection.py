@@ -19,6 +19,9 @@ class CanaryReference:
     reference_label: Verdict
     burden_stratum: str
     reference_unsupported_sentence_ids: tuple[int, ...]
+    split: str = "train"
+    hallucination_burden: float | None = None
+    locality: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

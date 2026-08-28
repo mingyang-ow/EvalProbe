@@ -1,0 +1,57 @@
+project: EvalProbe
+phase: phase2
+
+canary:
+  run_id: frozen-test-v1
+  split: test
+  total: 60
+  supported: 30
+  unsupported: 30
+  unsupported_strata:
+    low: 10
+    medium: 10
+    high: 10
+  max_per_source_id: 1
+  expected_calls: 120
+
+frozen_pilot:
+  path: reports/phase0/pilot_manifest.jsonl
+  sha256: 393f48b2f7a6cc6d4b7e9fc55e57f19ed87fdff4767041f8c5b4370c44595e11
+
+judge:
+  provider: openai
+  api: responses
+  model: gpt-5.6-sol
+  reasoning_effort: low
+  automatic_retries: 0
+  fallback_models: 0
+  store_provider_response: false
+  views: [whole, local]
+  max_output_tokens:
+    whole: 512
+    local: 768
+  prompts:
+    whole: whole-grounding-v1
+    local: local-grounding-v1
+
+local_units:
+  version: sentence-v2
+
+budget:
+  hard_cap_usd: 1.50
+  maximum_paid_calls: 120
+  approximate_characters_per_token: 3
+  pricing:
+    effective_date: 2026-08-28
+    source: https://developers.openai.com/api/docs/models/gpt-5.6-sol
+    input_per_million_usd: 4.00
+    cached_input_per_million_usd: 0.40
+    cache_write_per_million_usd: 5.00
+    output_per_million_usd: 20.00
+    long_context_threshold_tokens: 272000
+    long_context_input_multiplier: 2.0
+    long_context_output_multiplier: 1.5
+
+prerequisites:
+  sentence_conversion_human_review: complete
+  review_summary: reports/review/review_summary.json

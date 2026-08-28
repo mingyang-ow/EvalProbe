@@ -225,11 +225,12 @@ def manifest_rows(plan: CanaryPlan) -> list[dict[str, Any]]:
         for call in plan.calls
         if call.view == "local"
     }
-    return [
-        {
+    rows: list[dict[str, Any]] = []
+    for record in plan.records:
+        row: dict[str, Any] = {
             "record_id": record.reference.record_id,
             "source_id": record.reference.source_id,
-            "split": "train",
+            "split": record.reference.split,
             "reference_label": record.reference.reference_label,
             "burden_stratum": record.reference.burden_stratum,
             "reference_unsupported_sentence_ids": list(
@@ -237,8 +238,12 @@ def manifest_rows(plan: CanaryPlan) -> list[dict[str, Any]]:
             ),
             "sentence_count": sentence_counts[record.reference.record_id],
         }
-        for record in plan.records
-    ]
+        if record.reference.hallucination_burden is not None:
+            row["hallucination_burden"] = record.reference.hallucination_burden
+        if record.reference.locality is not None:
+            row["locality"] = record.reference.locality
+        rows.append(row)
+    return rows
 
 
 def preflight_summary(plan: CanaryPlan, max_cost_usd: float) -> dict[str, Any]:
@@ -249,7 +254,7 @@ def preflight_summary(plan: CanaryPlan, max_cost_usd: float) -> dict[str, Any]:
         "reasoning_effort": plan.config["judge"]["reasoning_effort"],
         "local_units_version": plan.config.get("local_units", {}).get("version", "sentence-v1"),
         "selected_record_count": len(plan.records),
-        "selected_split": "train",
+        "selected_split": plan.config["canary"].get("split", "train"),
         "whole_call_count": sum(call.view == "whole" for call in plan.calls),
         "local_call_count": sum(call.view == "local" for call in plan.calls),
         "expected_call_count": len(plan.calls),

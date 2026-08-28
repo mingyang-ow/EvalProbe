@@ -28,6 +28,12 @@ from evalprobe.phase1c.workflow import (
     load_phase1c_config,
     reusable_whole_results,
 )
+from evalprobe.phase2.workflow import (
+    build_frozen_test_plan,
+    load_phase2_config,
+    phase2_preflight_summary,
+    write_phase2_dry_run,
+)
 from evalprobe.review.diagnostics import aggregate_suspicious_units
 from evalprobe.review.loaders import (
     load_phase1_canary_records,
@@ -161,6 +167,16 @@ def parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("reports/phase1c/train-canary-segmentation-v2"),
     )
+    phase2 = commands.add_parser("phase2", help="Frozen TEST experiment")
+    phase2_mode = phase2.add_mutually_exclusive_group(required=True)
+    phase2_mode.add_argument("--dry-run", action="store_true")
+    phase2_mode.add_argument("--execute", action="store_true")
+    phase2.add_argument("--max-cost-usd", type=float)
+    phase2.add_argument("--config", type=Path, default=Path("configs/phase2.yaml"))
+    phase2.add_argument("--data-dir", type=Path, default=Path("data/raw"))
+    phase2.add_argument(
+        "--output-dir", type=Path, default=Path("reports/phase2/frozen-test-v1")
+    )
     return root
 
 
@@ -172,6 +188,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_review(args)
     if args.command == "phase1c":
         return _run_phase1c(args)
+    if args.command == "phase2":
+        return _run_phase2(args)
     config = _load_config(args.config)
     if args.phase0_command == "audit":
         summary = run_audit(args.data_dir, args.output_dir, config)
@@ -193,7 +211,10 @@ def main(argv: list[str] | None = None) -> int:
 def _print_preflight(summary: dict[str, Any]) -> None:
     print(f"Model: {summary['model']}")
     print(f"Reasoning effort: {summary['reasoning_effort']}")
-    print(f"Selected TRAIN records: {summary['selected_record_count']}")
+    print(
+        f"Selected {str(summary['selected_split']).upper()} records: "
+        f"{summary['selected_record_count']}"
+    )
     print(
         f"Expected calls: {summary['expected_call_count']} "
         f"({summary['whole_call_count']} whole + {summary['local_call_count']} local)"
@@ -353,4 +374,46 @@ def _run_phase1c(args: argparse.Namespace) -> int:
     )
     print(f"Estimated API cost: ${analysis['total_estimated_cost_usd']:.6f}")
     print(f"Comparison: {args.output_dir / 'comparison.md'}")
+    return 0
+
+
+def _run_phase2(args: argparse.Namespace) -> int:
+    repository_root = Path.cwd()
+    config = load_phase2_config(args.config)
+    plan, freeze = build_frozen_test_plan(config, args.data_dir, repository_root)
+    configured_cap = float(config["budget"]["hard_cap_usd"])
+    max_cost = configured_cap if args.max_cost_usd is None else args.max_cost_usd
+    summary = phase2_preflight_summary(
+        plan, freeze, args.output_dir, max_cost, repository_root
+    )
+    _print_preflight(summary)
+    print(f"Whole prompt: {summary['prompt_versions']['whole']}")
+    print(f"Local prompt: {summary['prompt_versions']['local']}")
+    print(f"Local units: {summary['local_units_version']}")
+    print(f"Frozen manifest SHA-256: {summary['frozen_manifest_sha256']}")
+    print(f"Pre-execution gate: {summary['pre_execution_gate'].upper()}")
+    if args.dry_run:
+        summary = write_phase2_dry_run(
+            plan, freeze, args.output_dir, max_cost, repository_root
+        )
+        print("Dry run complete: 0 network calls; 120 TEST calls planned.")
+        if summary["pre_execution_gate"] != "pass":
+            print("BLOCKED BEFORE TEST: pre-execution gate failed.")
+        print(f"Summary: {args.output_dir / 'dry_run.json'}")
+        return 0
+    if args.max_cost_usd is None:
+        raise SystemExit("--execute requires explicit --max-cost-usd")
+    if summary["pre_execution_gate"] != "pass":
+        raise SystemExit("BLOCKED BEFORE TEST: pre-execution gate failed; no calls made")
+    if not os.environ.get("OPENAI_API_KEY"):
+        raise SystemExit("OPENAI_API_KEY is required for --execute")
+    from openai import OpenAI
+
+    judge = OpenAIResponsesJudge(OpenAI(api_key=os.environ["OPENAI_API_KEY"], max_retries=0))
+    try:
+        results = execute_plan(plan, judge, args.output_dir, max_cost)
+    except CanaryExecutionError as error:
+        raise SystemExit(str(error)) from error
+    completed = sum(result.get("status") == "completed" for result in results)
+    print(f"Completed TEST calls: {completed} / {len(plan.calls)}")
     return 0
