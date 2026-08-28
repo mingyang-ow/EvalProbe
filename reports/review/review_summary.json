@@ -50,5 +50,21 @@
       "SEGMENTATION_DEFECT": 3
     },
     "reviewed_count": 11
+  },
+  "phase1c_sentence_v2_disagreements": {
+    "classification_counts": {
+      "BENCHMARK_AMBIGUITY": 0,
+      "JUDGE_ERROR": 0,
+      "REFERENCE_MAPPING_ARTIFACT": 0,
+      "RUBRIC_AMBIGUITY": 0,
+      "SEGMENTATION_DEFECT": 0
+    },
+    "mismatch_type_counts": {
+      "JUDGE_ONLY": 7,
+      "REFERENCE_ONLY": 0
+    },
+    "reviewed_count": 0,
+    "target_count": 7,
+    "unreviewed_count": 7
   }
 }

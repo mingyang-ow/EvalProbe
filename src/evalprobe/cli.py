@@ -29,6 +29,10 @@ from evalprobe.phase1c.workflow import (
     reusable_whole_results,
 )
 from evalprobe.review.diagnostics import aggregate_suspicious_units
+from evalprobe.review.loaders import (
+    load_phase1_canary_records,
+    phase1_current_local_disagreement_targets,
+)
 from evalprobe.review.storage import load_adjudications, review_summary, write_safe_json
 
 
@@ -236,17 +240,37 @@ def _run_phase1(args: argparse.Namespace) -> int:
 
 def _run_review(args: argparse.Namespace) -> int:
     if args.review_command == "summary":
-        summary = review_summary(load_adjudications(args.adjudications))
+        repository_root = Path.cwd()
+        phase1_dir = repository_root / "reports/phase1/train-canary-v1"
+        phase1c_dir = repository_root / "reports/phase1c/train-canary-segmentation-v2"
+        phase1c_records = load_phase1_canary_records(
+            phase1c_dir / "manifest.jsonl",
+            phase1c_dir / "results.jsonl",
+            repository_root / "reports/phase0/derived_features.jsonl",
+            repository_root / "data/raw",
+            whole_results_path=phase1_dir / "results.jsonl",
+            run_id_override="train-canary-segmentation-v2",
+            local_units_version="sentence-v2",
+        )
+        phase1c_targets = phase1_current_local_disagreement_targets(phase1c_records)
+        summary = review_summary(
+            load_adjudications(args.adjudications), phase1c_targets=phase1c_targets
+        )
         write_safe_json(args.output, summary)
         phase0_versions = summary["phase0_sentence_audit_versions"]
         phase1 = summary["phase1a_disagreements"]
+        phase1c = summary["phase1c_sentence_v2_disagreements"]
         for version, phase0 in phase0_versions.items():
             print(f"Phase 0 sentence audit ({version})")
             for status, count in phase0["status_counts"].items():
                 print(f"{status}: {count}")
-        print("Phase 1A disagreements")
+        print("Phase 1A historical disagreements")
         for classification, count in phase1["classification_counts"].items():
             print(f"{classification}: {count}")
+        print("Phase 1C sentence-v2 current disagreements")
+        for classification, count in phase1c["classification_counts"].items():
+            print(f"{classification}: {count}")
+        print(f"Unreviewed: {phase1c['unreviewed_count']}")
         print(f"Summary: {args.output}")
         return 0
     diagnostics = aggregate_suspicious_units(args.data_dir)

@@ -11,6 +11,7 @@ from evalprobe.review.models import (
     Adjudication,
     HumanClassification,
     ReviewKind,
+    ReviewTarget,
     SentenceAuditFailureType,
     SentenceAuditStatus,
 )
@@ -69,14 +70,30 @@ def save_adjudication(path: Path, decision: Adjudication) -> None:
         raise
 
 
-def review_summary(decisions: list[Adjudication]) -> dict[str, Any]:
+def review_summary(
+    decisions: list[Adjudication], phase1c_targets: list[ReviewTarget] | None = None
+) -> dict[str, Any]:
     phase0 = [
         decision for decision in decisions if decision.review_kind == ReviewKind.SENTENCE_AUDIT
     ]
-    phase1 = [
-        decision for decision in decisions if decision.review_kind == ReviewKind.JUDGE_DISAGREEMENT
+    phase1a = [
+        decision
+        for decision in decisions
+        if decision.review_kind == ReviewKind.JUDGE_DISAGREEMENT
+        and decision.run_id == "train-canary-v1"
     ]
-    classifications = Counter(decision.classification for decision in phase1)
+    phase1a_classifications = Counter(decision.classification for decision in phase1a)
+    current_targets = phase1c_targets or []
+    current_target_ids = {target.identity.review_id for target in current_targets}
+    phase1c = [
+        decision
+        for decision in decisions
+        if decision.review_kind == ReviewKind.JUDGE_DISAGREEMENT
+        and decision.run_id == "train-canary-segmentation-v2"
+        and decision.review_id in current_target_ids
+    ]
+    phase1c_classifications = Counter(decision.classification for decision in phase1c)
+    mismatch_types = Counter(target.mismatch_type for target in current_targets)
 
     def sentence_audit_counts(items: list[Adjudication]) -> dict[str, Any]:
         audit_statuses = Counter(decision.sentence_audit_status for decision in items)
@@ -105,9 +122,22 @@ def review_summary(decisions: list[Adjudication]) -> dict[str, Any]:
             ),
         },
         "phase1a_disagreements": {
-            "reviewed_count": len(phase1),
+            "reviewed_count": len(phase1a),
             "classification_counts": {
-                classification.value: classifications[classification.value]
+                classification.value: phase1a_classifications[classification.value]
+                for classification in HumanClassification
+            },
+        },
+        "phase1c_sentence_v2_disagreements": {
+            "target_count": len(current_targets),
+            "reviewed_count": len(phase1c),
+            "unreviewed_count": len(current_targets) - len(phase1c),
+            "mismatch_type_counts": {
+                mismatch_type: mismatch_types[mismatch_type]
+                for mismatch_type in ("REFERENCE_ONLY", "JUDGE_ONLY")
+            },
+            "classification_counts": {
+                classification.value: phase1c_classifications[classification.value]
                 for classification in HumanClassification
             },
         },

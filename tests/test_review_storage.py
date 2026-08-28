@@ -89,7 +89,7 @@ def test_human_classification_and_sentence_audit_status_are_validated() -> None:
 
 
 def test_persisted_enum_values_and_safe_summary_are_validated() -> None:
-    identity = ReviewIdentity("run", "record", "whole")
+    identity = ReviewIdentity("train-canary-v1", "record", "whole")
     decision = Adjudication.create(
         identity=identity,
         source_id="source",
@@ -140,6 +140,58 @@ def test_safe_summary_reports_sentence_audit_versions_separately() -> None:
         "PASS": 1,
         "PASS_WITH_LIMITATION": 0,
         "FAIL": 0,
+    }
+
+
+def test_safe_summary_separates_historical_and_current_disagreements() -> None:
+    current_targets = [
+        ReviewTarget(
+            ReviewIdentity("train-canary-segmentation-v2", "current", "local", sentence_id),
+            "source",
+            ReviewKind.JUDGE_DISAGREEMENT,
+            mismatch_type="JUDGE_ONLY",
+        )
+        for sentence_id in (2, 6)
+    ]
+    decisions = [
+        Adjudication.create(
+            identity=ReviewIdentity("train-canary-v1", "historical", "local", 2),
+            source_id="source",
+            review_kind=ReviewKind.JUDGE_DISAGREEMENT,
+            classification=HumanClassification.BENCHMARK_AMBIGUITY,
+            reviewed_at="now",
+        ),
+        Adjudication.create(
+            identity=current_targets[0].identity,
+            source_id="source",
+            review_kind=ReviewKind.JUDGE_DISAGREEMENT,
+            classification=HumanClassification.JUDGE_ERROR,
+            reviewed_at="now",
+        ),
+    ]
+
+    summary = review_summary(decisions, phase1c_targets=current_targets)
+
+    assert summary["phase1a_disagreements"]["reviewed_count"] == 1
+    assert summary["phase1a_disagreements"]["classification_counts"] == {
+        "JUDGE_ERROR": 0,
+        "SEGMENTATION_DEFECT": 0,
+        "REFERENCE_MAPPING_ARTIFACT": 0,
+        "BENCHMARK_AMBIGUITY": 1,
+        "RUBRIC_AMBIGUITY": 0,
+    }
+    assert summary["phase1c_sentence_v2_disagreements"] == {
+        "target_count": 2,
+        "reviewed_count": 1,
+        "unreviewed_count": 1,
+        "mismatch_type_counts": {"REFERENCE_ONLY": 0, "JUDGE_ONLY": 2},
+        "classification_counts": {
+            "JUDGE_ERROR": 1,
+            "SEGMENTATION_DEFECT": 0,
+            "REFERENCE_MAPPING_ARTIFACT": 0,
+            "BENCHMARK_AMBIGUITY": 0,
+            "RUBRIC_AMBIGUITY": 0,
+        },
     }
 
 
