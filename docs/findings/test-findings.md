@@ -16,3 +16,10 @@ that local judging caused or prevented whole-response errors.
 These are official benchmark comparisons, not human-corrected scores. Ninety-five disagreement
 items await explanatory review, and no TEST adjudication has occurred. Claims about benchmark
 ambiguity or judge error should wait for that review.
+
+## Error analysis pending
+
+The apparent whole false positives and local judge-only flags cannot yet be interpreted as judge
+errors. Phase 3 therefore freezes a bounded 44-item review set before any text inspection: all
+whole disagreements, all local reference-only misses, and a diverse deterministic sample of 20
+local judge-only flags. Findings will be updated only after human review is complete.

@@ -1,0 +1,38 @@
+{
+  "api_cost_usd": 0.0,
+  "duplicate_review_ids": 0,
+  "group_counts": {
+    "LOCAL_JUDGE_ONLY_SAMPLE": 20,
+    "LOCAL_REFERENCE_ONLY": 12,
+    "WHOLE_DISAGREEMENTS": 12
+  },
+  "human_adjudications_completed": 0,
+  "local_judge_only_population": 71,
+  "phase": "phase3",
+  "provider_calls": 0,
+  "run_id": "frozen-test-v1",
+  "sampling": {
+    "configured_maximum_items_per_record": 2,
+    "coverage_counts": {
+      "burden:high": 4,
+      "burden:low": 7,
+      "burden:medium": 1,
+      "density:few": 14,
+      "density:many": 1,
+      "density:moderate": 5,
+      "locality:DISTRIBUTED": 7,
+      "locality:LOCALIZED": 5,
+      "reference:SUPPORTED": 8,
+      "reference:UNSUPPORTED": 12,
+      "whole:AGREEMENT": 12,
+      "whole:DISAGREEMENT": 8
+    },
+    "maximum_items_per_record": 1,
+    "seed": 20260828,
+    "selected_record_count": 20,
+    "selection_basis": "safe metadata only; corpus text excluded",
+    "target": 20
+  },
+  "status": "READY_FOR_HUMAN_REVIEW",
+  "total_review_items": 44
+}

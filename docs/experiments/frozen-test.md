@@ -77,3 +77,14 @@ The safe queue contains 95 items: 1 whole false negative, 11 whole false positiv
 reference-only units, and 71 local judge-only units. Human TEST adjudication has not started;
 official metrics remain Sol versus unchanged RAGTruth. Status: **TEST COMPLETE — READY FOR ERROR
 ANALYSIS**.
+
+## Phase 3 review preparation
+
+Error-analysis setup made no provider calls and changed no frozen artifact or official metric. The
+bounded human workload contains all 12 whole disagreements, all 12 local `REFERENCE_ONLY` units,
+and 20 of the 71 local `JUDGE_ONLY` units, for 44 items total. The judge-only sample uses seed
+`20260828` and safe metadata only. A deterministic greedy pass prioritizes new records and then
+coverage of official reference class, whole agreement/disagreement, burden stratum, locality, and
+per-record judge-only density; stable hashes break ties. The selected sample uses 20 unique records
+and sources, with at most one selected unit from each in this realized set. Human adjudication has
+not started.

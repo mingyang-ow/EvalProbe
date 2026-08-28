@@ -83,4 +83,13 @@ freeze these official metrics and defer all human inspection to explanatory erro
 the run is `TEST COMPLETE — READY FOR ERROR ANALYSIS`; 95 whole/local disagreement items are queued
 and none has been human-adjudicated.
 
+**Observation:** the primary result combines high official unsupported recall with 11 apparent
+whole false positives, while local recall is high relative to its low official precision; burden
+counts are nearly flat and the granularity endpoint has a denominator of one. **Decision:** begin a
+bounded human error analysis before interpreting those disagreements. **Reason:** the benchmark
+score alone cannot distinguish judge over-calling from plausible annotation omissions or local
+mapping ambiguity. **Consequence:** Phase 3 includes all 12 whole disagreements, all 12 local
+reference-only units, and a deterministic 20-item judge-only sample; conclusions remain pending
+human review.
+
 Navigation and stable definitions live in [docs/INDEX.md](docs/INDEX.md).

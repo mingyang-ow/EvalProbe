@@ -13,6 +13,11 @@ From the repository root:
 uv run streamlit run src/evalprobe/review/app.py
 ```
 
+For Phase 3, choose `Judge disagreement review`, `sentence-v2`, and `Frozen TEST`. Then work through
+the `Phase 3 review group` selector in this order: `WHOLE_DISAGREEMENTS`,
+`LOCAL_REFERENCE_ONLY`, and `LOCAL_JUDGE_ONLY_SAMPLE`. Progress is shown separately for each group;
+the console never calls a judge.
+
 The app does not accept an API key and contains no judge-execution action.
 
 ## Review modes

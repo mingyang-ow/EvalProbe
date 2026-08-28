@@ -66,5 +66,73 @@
     "reviewed_count": 7,
     "target_count": 7,
     "unreviewed_count": 0
+  },
+  "phase3_test_error_analysis": {
+    "groups": {
+      "LOCAL_JUDGE_ONLY_SAMPLE": {
+        "classification_counts": {
+          "BENCHMARK_AMBIGUITY": 0,
+          "JUDGE_ERROR": 0,
+          "REFERENCE_MAPPING_ARTIFACT": 0,
+          "RUBRIC_AMBIGUITY": 0,
+          "SEGMENTATION_DEFECT": 0
+        },
+        "reviewed_count": 0,
+        "target_count": 20,
+        "unreviewed_count": 20
+      },
+      "LOCAL_REFERENCE_ONLY": {
+        "classification_counts": {
+          "BENCHMARK_AMBIGUITY": 0,
+          "JUDGE_ERROR": 0,
+          "REFERENCE_MAPPING_ARTIFACT": 0,
+          "RUBRIC_AMBIGUITY": 0,
+          "SEGMENTATION_DEFECT": 0
+        },
+        "reviewed_count": 0,
+        "target_count": 12,
+        "unreviewed_count": 12
+      },
+      "WHOLE_DISAGREEMENTS": {
+        "classification_counts": {
+          "BENCHMARK_AMBIGUITY": 0,
+          "JUDGE_ERROR": 0,
+          "REFERENCE_MAPPING_ARTIFACT": 0,
+          "RUBRIC_AMBIGUITY": 0,
+          "SEGMENTATION_DEFECT": 0
+        },
+        "mismatch_populations": {
+          "FALSE_NEGATIVE": {
+            "classification_counts": {
+              "BENCHMARK_AMBIGUITY": 0,
+              "JUDGE_ERROR": 0,
+              "REFERENCE_MAPPING_ARTIFACT": 0,
+              "RUBRIC_AMBIGUITY": 0,
+              "SEGMENTATION_DEFECT": 0
+            },
+            "reviewed_count": 0,
+            "target_count": 1,
+            "unreviewed_count": 1
+          },
+          "FALSE_POSITIVE": {
+            "classification_counts": {
+              "BENCHMARK_AMBIGUITY": 0,
+              "JUDGE_ERROR": 0,
+              "REFERENCE_MAPPING_ARTIFACT": 0,
+              "RUBRIC_AMBIGUITY": 0,
+              "SEGMENTATION_DEFECT": 0
+            },
+            "reviewed_count": 0,
+            "target_count": 11,
+            "unreviewed_count": 11
+          }
+        },
+        "reviewed_count": 0,
+        "target_count": 12,
+        "unreviewed_count": 12
+      }
+    },
+    "official_metrics_rewritten": false,
+    "status": "HUMAN_REVIEW_REQUIRED"
   }
 }

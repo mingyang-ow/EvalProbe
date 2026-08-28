@@ -31,10 +31,17 @@ def test_review_console_loads_both_segmentation_versions() -> None:
     assert not app.exception
     assert any(selectbox.label == "Primary classification" for selectbox in app.selectbox)
 
-    judge_run = next(
-        control for control in app.segmented_control if control.label == "Judge run"
-    )
+    judge_run = next(control for control in app.segmented_control if control.label == "Judge run")
     judge_run.set_value("Frozen TEST")
     app.run(timeout=30)
     assert not app.exception
+    assert any(control.label == "Phase 3 review group" for control in app.segmented_control)
     assert any(selectbox.label == "Primary classification" for selectbox in app.selectbox)
+    for group in ("LOCAL_REFERENCE_ONLY", "LOCAL_JUDGE_ONLY_SAMPLE"):
+        phase3_group = next(
+            control for control in app.segmented_control if control.label == "Phase 3 review group"
+        )
+        phase3_group.set_value(group)
+        app.run(timeout=30)
+        assert not app.exception
+        assert any(selectbox.label == "Primary classification" for selectbox in app.selectbox)

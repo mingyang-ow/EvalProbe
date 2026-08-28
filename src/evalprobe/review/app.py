@@ -6,6 +6,15 @@ from pathlib import Path
 
 import streamlit as st
 
+from evalprobe.phase3.review_set import (
+    LOCAL_JUDGE_ONLY_SAMPLE,
+    LOCAL_REFERENCE_ONLY,
+    PHASE3_GROUPS,
+    WHOLE_DISAGREEMENTS,
+    Phase3ReviewItem,
+    load_phase3_review_items,
+    phase3_targets_by_group,
+)
 from evalprobe.review.diagnostics import aggregate_suspicious_units
 from evalprobe.review.loaders import (
     filter_review_targets,
@@ -36,6 +45,7 @@ PHASE0_AUDIT_V2 = REPOSITORY_ROOT / "reports/phase0/manual_audit_v2.jsonl"
 PHASE1_DIR = REPOSITORY_ROOT / "reports/phase1/train-canary-v1"
 PHASE1C_DIR = REPOSITORY_ROOT / "reports/phase1c/train-canary-segmentation-v2"
 PHASE2_DIR = REPOSITORY_ROOT / "reports/phase2/frozen-test-v1"
+PHASE3_DIR = REPOSITORY_ROOT / "reports/phase3/frozen-test-error-analysis"
 PHASE0_FEATURES = REPOSITORY_ROOT / "reports/phase0/derived_features.jsonl"
 ADJUDICATIONS = REPOSITORY_ROOT / "reports/review/adjudications.jsonl"
 
@@ -86,6 +96,11 @@ def _load_phase1(version: str, judge_run: str = "TRAIN validation") -> list[Revi
         PHASE0_FEATURES,
         DATA_DIR,
     )
+
+
+@st.cache_data(show_spinner=False, max_entries=1)
+def _load_phase3() -> list[Phase3ReviewItem]:
+    return load_phase3_review_items(PHASE3_DIR / "review_set.jsonl")
 
 
 @st.cache_data(show_spinner=False, max_entries=1)
@@ -195,6 +210,18 @@ def _render_record(record: ReviewRecord, current_sentence_id: int | None = None)
         with st.container(horizontal=True, gap="small"):
             st.badge(f"Reference: {record.reference_verdict}", color="orange")
             st.badge(f"Judge: {record.judge_prediction}", color="violet")
+        burden = (
+            "n/a" if record.hallucination_burden is None else f"{record.hallucination_burden:.6f}"
+        )
+        st.caption(
+            f"Burden stratum: {record.burden_stratum} · locality: {record.locality} · "
+            f"hallucination burden: {burden}"
+        )
+        st.info(
+            "Review question: Does every substantive assertion in the complete answer remain "
+            "grounded in the supplied evidence?",
+            icon=":material/help:",
+        )
     elif record.view == "local":
         if record.judge_prediction is None:
             st.info(
@@ -336,6 +363,22 @@ def _render_progress(
             for classification in HumanClassification
         ]
     st.caption(" · ".join(labels))
+
+
+def _render_phase3_progress(
+    targets_by_group: dict[str, list[ReviewTarget]],
+    decisions: dict[str, Adjudication],
+) -> None:
+    labels = {
+        WHOLE_DISAGREEMENTS: "Whole disagreements",
+        LOCAL_REFERENCE_ONLY: "Local reference only",
+        LOCAL_JUDGE_ONLY_SAMPLE: "Local judge-only sample",
+    }
+    with st.container(horizontal=True, gap="small"):
+        for group in PHASE3_GROUPS:
+            targets = targets_by_group[group]
+            reviewed = sum(target.identity.review_id in decisions for target in targets)
+            st.metric(labels[group], f"{reviewed} / {len(targets)}", border=True)
 
 
 def _render_target_navigation(targets: list[ReviewTarget], key: str) -> ReviewTarget:
@@ -507,6 +550,15 @@ with st.sidebar:
         disabled=mode == MODE_SENTENCE,
         width="stretch",
     )
+    phase3_group = st.segmented_control(
+        "Phase 3 review group",
+        list(PHASE3_GROUPS),
+        default=WHOLE_DISAGREEMENTS,
+        required=True,
+        key="phase3_group",
+        disabled=mode != MODE_DISAGREEMENT or judge_run != "Frozen TEST",
+        width="stretch",
+    )
     st.caption("No API key is accepted. Experiment execution is a separate CLI workflow.")
 
 try:
@@ -533,17 +585,40 @@ try:
     else:
         phase1_records = _load_phase1(str(segmentation_version), str(judge_run))
         methodology_outcomes: list[MethodologyRepairOutcome] = []
+        phase3_items_by_review_id: dict[str, Phase3ReviewItem] = {}
+        phase3_groups: dict[str, list[ReviewTarget]] | None = None
         if judge_run == "TRAIN validation" and segmentation_version == "sentence-v2":
             methodology_outcomes = phase1_segmentation_repair_outcomes(
                 phase1_records, list(decisions.values())
             )
             disagreement_targets = phase1_current_local_disagreement_targets(phase1_records)
+        elif judge_run == "Frozen TEST" and mode == MODE_DISAGREEMENT:
+            phase3_items = _load_phase3()
+            phase3_items_by_review_id = {item.review_id: item for item in phase3_items}
+            phase3_groups = phase3_targets_by_group(phase3_items)
+            disagreement_targets = phase3_groups[str(phase3_group)]
         else:
             disagreement_targets = phase1_disagreement_targets(phase1_records)
         record_by_key = {(record.record_id, record.view): record for record in phase1_records}
         if mode == MODE_DISAGREEMENT:
             if methodology_outcomes:
                 _render_methodology_repair_outcomes(methodology_outcomes)
+            if phase3_groups is not None:
+                _render_phase3_progress(phase3_groups, decisions)
+                group_help = {
+                    WHOLE_DISAGREEMENTS: (
+                        "Review all official whole-response false positives and the single "
+                        "false negative."
+                    ),
+                    LOCAL_REFERENCE_ONLY: (
+                        "Review all official unsupported local units missed by the local judge."
+                    ),
+                    LOCAL_JUDGE_ONLY_SAMPLE: (
+                        "Review the fixed metadata-only sample; the other judge-only units are "
+                        "outside this bounded workload."
+                    ),
+                }
+                st.caption(group_help[str(phase3_group)])
             _render_progress(
                 disagreement_targets,
                 decisions,
@@ -561,6 +636,14 @@ try:
                 )
                 st.stop()
             target = _render_target_navigation(targets, "phase1_target")
+            phase3_item = phase3_items_by_review_id.get(target.identity.review_id)
+            if phase3_item and phase3_item.diagnostic_priority:
+                st.warning(
+                    "This is the only whole-response UNSUPPORTED → SUPPORTED miss. Inspect the "
+                    "burden, span location, locality, and annotation defensibility without "
+                    "generalizing from one record.",
+                    icon=":material/priority_high:",
+                )
             record = record_by_key[(target.identity.record_id, target.identity.view)]
             _render_record(record, target.identity.sentence_id)
             if judge_run == "TRAIN validation" and segmentation_version == "sentence-v2":

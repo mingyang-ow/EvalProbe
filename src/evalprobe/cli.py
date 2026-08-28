@@ -36,6 +36,11 @@ from evalprobe.phase2.workflow import (
     phase2_preflight_summary,
     write_phase2_dry_run,
 )
+from evalprobe.phase3.review_set import (
+    load_phase3_review_items,
+    phase3_adjudication_summary,
+    prepare_phase3_review_set,
+)
 from evalprobe.review.diagnostics import aggregate_suspicious_units
 from evalprobe.review.loaders import (
     load_phase1_canary_records,
@@ -176,9 +181,32 @@ def parser() -> argparse.ArgumentParser:
     phase2.add_argument("--max-cost-usd", type=float)
     phase2.add_argument("--config", type=Path, default=Path("configs/phase2.yaml"))
     phase2.add_argument("--data-dir", type=Path, default=Path("data/raw"))
-    phase2.add_argument(
-        "--output-dir", type=Path, default=Path("reports/phase2/frozen-test-v1")
+    phase2.add_argument("--output-dir", type=Path, default=Path("reports/phase2/frozen-test-v1"))
+    phase3 = commands.add_parser("phase3", help="Frozen TEST human error analysis")
+    phase3.add_argument("--prepare", action="store_true", required=True)
+    phase3.add_argument(
+        "--manifest",
+        type=Path,
+        default=Path("reports/phase2/frozen-test-v1/manifest.jsonl"),
     )
+    phase3.add_argument(
+        "--results",
+        type=Path,
+        default=Path("reports/phase2/frozen-test-v1/results.jsonl"),
+    )
+    phase3.add_argument(
+        "--queue",
+        type=Path,
+        default=Path("reports/phase2/frozen-test-v1/review_queue.jsonl"),
+    )
+    phase3.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("reports/phase3/frozen-test-error-analysis"),
+    )
+    phase3.add_argument("--seed", type=int, default=20260828)
+    phase3.add_argument("--judge-only-target", type=int, default=20)
+    phase3.add_argument("--max-per-record", type=int, default=2)
     return root
 
 
@@ -192,6 +220,8 @@ def main(argv: list[str] | None = None) -> int:
         return _run_phase1c(args)
     if args.command == "phase2":
         return _run_phase2(args)
+    if args.command == "phase3":
+        return _run_phase3(args)
     config = _load_config(args.config)
     if args.phase0_command == "audit":
         summary = run_audit(args.data_dir, args.output_dir, config)
@@ -279,6 +309,14 @@ def _run_review(args: argparse.Namespace) -> int:
         summary = review_summary(
             load_adjudications(args.adjudications), phase1c_targets=phase1c_targets
         )
+        phase3_path = repository_root / (
+            "reports/phase3/frozen-test-error-analysis/review_set.jsonl"
+        )
+        decisions = load_adjudications(args.adjudications)
+        if phase3_path.is_file():
+            summary["phase3_test_error_analysis"] = phase3_adjudication_summary(
+                load_phase3_review_items(phase3_path), decisions
+            )
         write_safe_json(args.output, summary)
         phase0_versions = summary["phase0_sentence_audit_versions"]
         phase1 = summary["phase1a_disagreements"]
@@ -294,6 +332,10 @@ def _run_review(args: argparse.Namespace) -> int:
         for classification, count in phase1c["classification_counts"].items():
             print(f"{classification}: {count}")
         print(f"Unreviewed: {phase1c['unreviewed_count']}")
+        if "phase3_test_error_analysis" in summary:
+            print("Phase 3 frozen TEST error analysis")
+            for group, counts in summary["phase3_test_error_analysis"]["groups"].items():
+                print(f"{group}: {counts['reviewed_count']} reviewed / {counts['target_count']}")
         print(f"Summary: {args.output}")
         return 0
     diagnostics = aggregate_suspicious_units(args.data_dir)
@@ -385,9 +427,7 @@ def _run_phase2(args: argparse.Namespace) -> int:
     plan, freeze = build_frozen_test_plan(config, args.data_dir, repository_root)
     configured_cap = float(config["budget"]["hard_cap_usd"])
     max_cost = configured_cap if args.max_cost_usd is None else args.max_cost_usd
-    summary = phase2_preflight_summary(
-        plan, freeze, args.output_dir, max_cost, repository_root
-    )
+    summary = phase2_preflight_summary(plan, freeze, args.output_dir, max_cost, repository_root)
     _print_preflight(summary)
     print(f"Whole prompt: {summary['prompt_versions']['whole']}")
     print(f"Local prompt: {summary['prompt_versions']['local']}")
@@ -395,9 +435,7 @@ def _run_phase2(args: argparse.Namespace) -> int:
     print(f"Frozen manifest SHA-256: {summary['frozen_manifest_sha256']}")
     print(f"Pre-execution gate: {summary['pre_execution_gate'].upper()}")
     if args.dry_run:
-        summary = write_phase2_dry_run(
-            plan, freeze, args.output_dir, max_cost, repository_root
-        )
+        summary = write_phase2_dry_run(plan, freeze, args.output_dir, max_cost, repository_root)
         print("Dry run complete: 0 network calls; 120 TEST calls planned.")
         if summary["pre_execution_gate"] != "pass":
             print("BLOCKED BEFORE TEST: pre-execution gate failed.")
@@ -425,4 +463,24 @@ def _run_phase2(args: argparse.Namespace) -> int:
     print(f"Operational failures: {analysis['operational']['operational_failure_count']}")
     print(f"Estimated API cost: ${analysis['operational']['cost_usd']:.6f}")
     print(f"Report: {args.output_dir / 'report.md'}")
+    return 0
+
+
+def _run_phase3(args: argparse.Namespace) -> int:
+    summary = prepare_phase3_review_set(
+        args.manifest,
+        args.results,
+        args.queue,
+        args.output_dir,
+        seed=args.seed,
+        judge_only_target=args.judge_only_target,
+        max_per_record=args.max_per_record,
+    )
+    groups = summary["group_counts"]
+    print(f"Whole disagreements: {groups['WHOLE_DISAGREEMENTS']}")
+    print(f"Local REFERENCE_ONLY: {groups['LOCAL_REFERENCE_ONLY']}")
+    print(f"Sampled local JUDGE_ONLY: {groups['LOCAL_JUDGE_ONLY_SAMPLE']}")
+    print(f"Total human review items: {summary['total_review_items']}")
+    print("Provider calls: 0; API cost: $0.00")
+    print(f"Review set: {args.output_dir / 'review_set.jsonl'}")
     return 0
