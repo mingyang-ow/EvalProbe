@@ -1,0 +1,15 @@
+{
+  "current_classification": "SEGMENTATION_DEFECT",
+  "current_concise_note": "",
+  "final_interpretation_blocked": true,
+  "human_rereview_required": true,
+  "mismatch_type": "FALSE_POSITIVE",
+  "reason": "Whole-response judging consumes the complete answer, not sentence-v2 units. Sentence segmentation therefore cannot directly explain this whole-view prediction disagreement.",
+  "record_id": "14997",
+  "review_group": "WHOLE_DISAGREEMENTS",
+  "review_id": "bcb20e8a85d44712cf4db835",
+  "run_id": "frozen-test-v1",
+  "source_id": "15420",
+  "status": "FINAL INTERPRETATION PENDING ONE ADJUDICATION",
+  "view": "whole"
+}
