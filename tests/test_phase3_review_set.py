@@ -170,8 +170,8 @@ def test_completed_phase3_human_review_counts_are_frozen() -> None:
     }
     assert summary["groups"][LOCAL_JUDGE_ONLY_SAMPLE]["classification_counts"] == {
         "JUDGE_ERROR": 0,
-        "SEGMENTATION_DEFECT": 1,
+        "SEGMENTATION_DEFECT": 0,
         "REFERENCE_MAPPING_ARTIFACT": 0,
-        "BENCHMARK_AMBIGUITY": 19,
+        "BENCHMARK_AMBIGUITY": 20,
         "RUBRIC_AMBIGUITY": 0,
     }

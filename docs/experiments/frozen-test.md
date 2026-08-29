@@ -94,11 +94,11 @@ human adjudication had not started.
 All 44 bounded items were reviewed. Among the 11 official whole false positives, classifications
 were 9 `BENCHMARK_AMBIGUITY`, 1 `JUDGE_ERROR`, and 1 `SEGMENTATION_DEFECT`; the single whole false
 negative was `JUDGE_ERROR`. The 12 local reference-only misses comprised 8 `JUDGE_ERROR` and 4
-`BENCHMARK_AMBIGUITY`. The 20-item local judge-only sample comprised 19
-`BENCHMARK_AMBIGUITY` and 1 `SEGMENTATION_DEFECT`.
+`BENCHMARK_AMBIGUITY`. All 20 items in the local judge-only sample were classified
+`BENCHMARK_AMBIGUITY`.
 
 The whole-view segmentation classification is retained exactly as entered even though whole
 judging does not consume sentence units; it is a methodological flag, not an automatically recoded
-verdict. The judge-only sample was coverage-oriented rather than probabilistic, so 19/20 is not an
+verdict. The judge-only sample was coverage-oriented rather than probabilistic, so 20/20 is not an
 estimate for all 71 judge-only units. Official metrics, labels, predictions, and methodology remain
 unchanged. Phase 3 used zero provider calls and $0 API spend.

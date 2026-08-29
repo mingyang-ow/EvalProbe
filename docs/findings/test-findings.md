@@ -19,9 +19,9 @@ These are official benchmark comparisons, not human-corrected scores.
 
 Human review did not support interpreting all apparent false positives as judge over-calling. Nine
 of 11 whole false positives were classified as plausible benchmark ambiguity, versus one judge
-error and one segmentation flag. Similarly, 19/20 sampled local judge-only flags were classified
+error and one segmentation flag. All 20 sampled local judge-only flags were classified
 as benchmark ambiguity. Because this was a deterministic coverage sample rather than a probability
-sample, 19/20 must not be projected to all 71 judge-only units.
+sample, 20/20 must not be projected to all 71 judge-only units.
 
 The judge also made genuine misses: 8/12 local reference-only items and the single whole false
 negative were classified as judge errors. The most defensible interpretation is therefore mixed:

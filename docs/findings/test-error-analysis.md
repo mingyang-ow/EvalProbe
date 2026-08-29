@@ -43,7 +43,7 @@ a separate methodological question is explicitly authorized.
 | Whole false positives (n=11) | 1 | 9 | 1 | 0 | 0 |
 | Whole false negative (n=1) | 1 | 0 | 0 | 0 | 0 |
 | Local reference-only (n=12) | 8 | 4 | 0 | 0 | 0 |
-| Local judge-only sample (n=20) | 0 | 19 | 1 | 0 | 0 |
+| Local judge-only sample (n=20) | 0 | 20 | 0 | 0 | 0 |
 
 The classifications show both benchmark incompleteness and genuine judge misses. Apparent whole
 false positives and sampled local judge-only flags were dominated by benchmark ambiguity; local
@@ -51,6 +51,6 @@ reference-only items were mostly judge errors. The whole-view segmentation class
 retained as submitted, but because whole judging does not use sentence units it is treated as a
 methodological flag rather than recoded automatically.
 
-The 20 judge-only items form a purposive coverage sample, not a probability sample. Their 19/20
+The 20 judge-only items form a purposive coverage sample, not a probability sample. Their 20/20
 benchmark-ambiguity count describes reviewed items only. Official Sol-versus-RAGTruth metrics are
 unchanged, the burden result remains weak, and 0/1 granularity recovery remains inconclusive.

@@ -28,9 +28,9 @@ Of 12 official unsupported units missed by the local judge, 8 were classified as
 
 | Population | Judge error | Benchmark ambiguity | Segmentation | Mapping | Rubric |
 |---|---:|---:|---:|---:|---:|
-| Judge-only sample (n=20) | 0 | 19 | 1 | 0 | 0 |
+| Judge-only sample (n=20) | 0 | 20 | 0 | 0 | 0 |
 
-Of 20 sampled judge-only units, 19 were classified as benchmark ambiguity and 1 as a segmentation defect. This was a deterministic coverage sample, not a probability sample; its exact rate
+Of 20 sampled judge-only units, 20 were classified as benchmark ambiguity and 0 as a segmentation defect. This was a deterministic coverage sample, not a probability sample; its exact rate
 must not be projected onto all 71 judge-only units.
 
 ## Interpretation boundaries
@@ -42,5 +42,5 @@ must not be projected onto all 71 judge-only units.
   errors.
 - The frozen burden counts (9/10, 10/10, 10/10) remain weak evidence for a burden effect.
 - Granularity recovery remains 0/1 and therefore underpowered and inconclusive.
-- Two segmentation classifications are recorded for future methodology review. Phase 3 makes no
-  segmentation repair and changes no frozen result.
+- One whole-view segmentation classification is recorded as a methodological flag. Phase 3 makes
+  no segmentation repair and changes no frozen result.

@@ -71,11 +71,11 @@
     "groups": {
       "LOCAL_JUDGE_ONLY_SAMPLE": {
         "classification_counts": {
-          "BENCHMARK_AMBIGUITY": 19,
+          "BENCHMARK_AMBIGUITY": 20,
           "JUDGE_ERROR": 0,
           "REFERENCE_MAPPING_ARTIFACT": 0,
           "RUBRIC_AMBIGUITY": 0,
-          "SEGMENTATION_DEFECT": 1
+          "SEGMENTATION_DEFECT": 0
         },
         "reviewed_count": 20,
         "target_count": 20,
