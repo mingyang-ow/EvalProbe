@@ -33,3 +33,7 @@ poor performance, and surprising results are not implementation defects.
 RAGTruth predates this judge, so training exposure cannot be ruled out. Exact annotations are a
 benchmark reference rather than infallible truth; TRAIN review found plausible omissions. Results
 are QA-only, use one judge, and have limited power at n=60.
+
+Post-freeze execution and human error analysis changed none of these decisions. Official metrics
+remain Sol versus RAGTruth; human classifications are stored and reported only as explanatory
+diagnoses.

@@ -4,6 +4,11 @@ Human review diagnoses evaluation behavior without changing official RAGTruth la
 metrics. Persisted decisions contain identifiers, classification, concise notes, reviewer metadata,
 and timestamps—not questions, passages, answers, prompts, or annotation text.
 
+The hierarchy is explicit: RAGTruth supplies the official benchmark reference, the judge supplies
+the prediction, and the human reviewer supplies an explanatory diagnosis. None is silently promoted
+to corrected ground truth. All reported accuracy, precision, recall, and confusion counts remain
+judge versus RAGTruth.
+
 ## Classification taxonomy
 
 - `JUDGE_ERROR`: the unit and reference are sensible, evidence supports the content, and the judge
@@ -21,6 +26,13 @@ none revealed a new segmentation, mapping, or rubric defect.
 
 TEST metrics must be generated before qualitative TEST review. Later review should focus on
 informative errors and remain a separate explanatory layer.
+
+The bounded TEST review completed 44/44 items. Whole false positives comprised 10 benchmark
+ambiguities and 1 judge error; the sole whole false negative was a judge error. Local
+reference-only misses comprised 8 judge errors and 4 benchmark ambiguities. All 20 deterministically
+sampled local judge-only flags were benchmark ambiguities. Because only 20/71 judge-only units were
+reviewed through a coverage sample, that result is descriptive of the sample and is not extrapolated
+to the full population.
 
 See [Review Console operations](../REVIEW_CONSOLE.md) and the safe summary at
 `reports/review/review_summary.json`.

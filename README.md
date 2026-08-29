@@ -1,116 +1,187 @@
 # EvalProbe
 
-EvalProbe asks a narrow evaluation question: **does an LLM judge miss a small unsupported claim inside an otherwise grounded RAG answer?** It is an interview-forward AI evaluation engineering project, not an attempt to build an exhaustive benchmark.
+A reproducible evaluation framework for testing when an LLM judge can be trusted to assess
+grounded RAG answers—and diagnosing whether disagreements come from the judge, benchmark, or
+evaluation pipeline.
 
-The primary endpoint in the future experiment will be whole-response rejection. Deterministic sentence-level analysis will explain whether a judge can find unsupported content locally even when it approves the answer globally.
+**Status:** evaluation experiment complete · human error analysis complete · portfolio
+consolidation complete
 
-## Why RAGTruth
+## Why this project exists
 
-[RAGTruth](https://github.com/ParticleMedia/RAGTruth) provides natural RAG responses with human character-span hallucination annotations. Those spans support both the whole-response reference and a controlled measure of hallucination burden without using an LLM to extract claims. `implicit_true` annotations remain unsupported here: EvalProbe measures grounding against supplied evidence, not truth using outside knowledge.
+LLM-as-judge scores are often treated as truth, but an apparent evaluator error can have several
+causes: the judge may be wrong, the benchmark annotation may be incomplete, or preprocessing may
+have distorted the unit being evaluated. EvalProbe makes those failure sources observable instead
+of assuming either the model or benchmark is infallible.
 
-## Current status
+The project is intentionally narrow and interview-forward: one human-annotated dataset, one frozen
+QA pilot, one judge, independent whole/local views, deterministic validation, and a bounded human
+adjudication workflow.
 
-**Phase 0 is complete.** The repository audits RAGTruth, validates annotation offsets,
-derives text-free features, and preserves a frozen 60-response QA test pilot.
+## Research question
 
-**Phase 1A implements the judge contract and a six-record TRAIN-only canary.** It uses one
-strong judge (`gpt-5.6-sol`, low reasoning) through the OpenAI Responses API. The canary is a
-contract diagnostic, not a performance result, and the frozen TEST pilot remains untouched.
+Does an LLM judge miss a small unsupported claim inside an otherwise grounded RAG answer, and can
+local evidence judging recover unsupported content when whole-response judging approves the answer?
 
-**Phase 1C repairs detached formatting-only list markers.** `sentence-v2` merges a marker with
-its immediately following textual unit while retaining original character offsets. The same six
-TRAIN records are rerun locally; Phase 1A whole predictions are hash-validated and reused.
+The anticipated burden and granularity effects were weak or inconclusive. The strongest result was
+instead about evaluation reliability: benchmark disagreement was not equivalent to judge error,
+and the first sentence splitter itself manufactured apparent evaluator failures.
 
-**TRAIN validation is complete and the methodology is frozen.** Sentence-v2 passed a fresh 20/20
-human audit, and all seven remaining current TRAIN disagreements were adjudicated as benchmark
-ambiguity rather than a segmentation, mapping, rubric, or judge defect. Phase 2 now gates the
-already frozen 60-record TEST pilot without tuning against TEST.
+## Evaluation pipeline
 
 ```mermaid
-flowchart LR
-    A[RAGTruth] --> B[Schema and reference audit]
-    B --> C[Deterministic feature derivation]
-    C --> D[Frozen pilot]
-    D --> E[Safe judge-input builder]
-    E --> F[Independent whole judge]
-    E --> G[Independent local judge]
-    F --> H[Validated result envelope]
-    G --> H
-    H -. future TEST run .-> I[Comparison and error analysis]
+flowchart TD
+    A[RAGTruth good QA] --> B[Human hallucination spans]
+    B --> C[Deterministic reference construction]
+    C --> W[Whole-response judge]
+    C --> L[Local sentence-v2 judge]
+    W --> M[Official Sol vs RAGTruth metrics]
+    L --> M
+    M --> Q[Bounded disagreement queue]
+    Q --> H[Human adjudication]
+    H --> F[Failure-source analysis]
 ```
 
-## Experimental discipline
+`deterministic validation ≠ semantic judging ≠ benchmark correctness`
 
-- Only `good` QA responses are eligible; `incorrect_refusal` and `truncated` are excluded.
-- No annotation means `SUPPORTED`; any annotation means `UNSUPPORTED`.
-- Hallucination burden is union span coverage divided by response characters.
-- Sentences are fixed rule-based units with exact character offsets, not semantic claims.
-- Burden tertiles come only from eligible QA training responses.
-- The test pilot targets 30 supported and 30 unsupported responses (10 per burden tertile), with at most one response per `source_id` and seed `20260828`.
-- Test data never chooses thresholds. See [judge-input leakage controls](docs/LEAKAGE_CONTROLS.md).
-- Whole and local judgments are independent requests with no conversation or reasoning state shared.
-- The judge returns only a verdict or unsupported sentence IDs—no rationale or chain-of-thought.
-- Paid execution is explicit, resumable, sequential, retry-free, and guarded by a configured cap.
+Official metrics always compare frozen `gpt-5.6-sol` predictions with unchanged RAGTruth
+references. Human review explains disagreements; it never creates corrected primary metrics.
 
-## Reproduce Phase 0
+## Key results
 
-Python 3.12+ and [uv](https://docs.astral.sh/uv/) are required.
+| Frozen TEST result | Finding |
+|---|---:|
+| Whole-response accuracy | 48/60 = **80.0%** |
+| Unsupported recall | 29/30 = **96.7%** |
+| Supported recall | 19/30 = **63.3%** |
+| Local unsupported recall | 60/72 = **83.3%** |
+| Local official precision | 60/131 = **45.8%** |
+| Local exact sentence-set agreement | 24/60 = **40.0%** |
+| `sentence-v1` audit | **14/20 PASS** |
+| `sentence-v2` audit | **20/20 PASS** |
+
+Human review showed why official precision alone was incomplete: all 20 deterministically sampled
+local judge-only units were plausible benchmark ambiguities. This describes a 20/71 coverage
+sample and is not extrapolated to every judge-only unit.
+
+![Whole-response confusion matrix](reports/phase4/whole_confusion_matrix.svg)
+
+## Strongest findings
+
+### 1. Evaluator preprocessing can create fake evaluator errors
+
+`sentence-v1` detached standalone list markers from the text they introduced. Span overlap could
+then label those markers unsupported, creating inappropriate units and apparent judge misses.
+`sentence-v2` removed 10,305 marker-only units while preserving all 2,927 exact span matches; its
+fresh human audit passed 20/20.
+
+### 2. Judge/reference disagreement is not automatically judge error
+
+Among 11 official whole false positives, human review classified 10 as plausible benchmark
+ambiguity and 1 as judge error. In the sampled local judge-only population, all 20/20 were
+benchmark ambiguities. Yet the judge also made genuine mistakes: 8/12 local reference-only misses
+and the sole whole false negative were judge errors.
+
+### 3. Strong unsupported recall did not validate the original hypothesis
+
+Unsupported detection was 9/10 low-burden, 10/10 medium, and 10/10 high—weak evidence for a burden
+effect. There was only one whole unsupported miss and local judging recovered 0/1, leaving the
+planned granularity endpoint underpowered and inconclusive.
+
+## Human error analysis
+
+**Official benchmark:** Sol predictions versus unchanged RAGTruth references.<br>
+**Human analysis:** why selected benchmark and judge outputs disagreed.
+
+| Reviewed population | Judge error | Benchmark ambiguity | Methodology defects |
+|---|---:|---:|---:|
+| Whole false positives (all 11) | 1 | 10 | 0 |
+| Whole false negative (all 1) | 1 | 0 | 0 |
+| Local reference-only (all 12) | 8 | 4 | 0 |
+| Local judge-only (**sampled 20/71**) | 0 | 20 | 0 |
+
+![Human interpretation of disagreement populations](reports/phase4/human_disagreement_classifications.svg)
+
+The sampled row is deliberately labelled and kept separate from exhaustively reviewed populations.
+See the [frozen TEST findings](docs/findings/test-findings.md) and
+[error-analysis record](docs/findings/test-error-analysis.md).
+
+## Engineering and reproducibility
+
+The repository demonstrates frozen manifests, versioned prompts, strict structured outputs, safe
+judge-input DTOs, leakage controls, independent requests, a resumable result ledger, provider
+failure taxonomy, token/cost accounting, budget guards, deterministic preprocessing, a local human
+review console, safe reports, regression tests, and CI checks.
+
+Python 3.12+ and [uv](https://docs.astral.sh/uv/) are required. Raw RAGTruth files remain local.
 
 ```bash
 uv sync --all-groups
 uv run python scripts/fetch_ragtruth.py
 uv run evalprobe phase0 audit
 uv run evalprobe phase0 build-pilot
+uv run evalprobe phase1 canary --dry-run
+uv run evalprobe phase1c diagnostics
+uv run evalprobe phase2 --dry-run --max-cost-usd 3.00
+uv run evalprobe phase3 --prepare
+uv run evalprobe review summary
+uv run python scripts/build_portfolio_plots.py
 uv run ruff check .
 uv run pytest
 ```
 
-Raw files and the text-bearing manual audit stay local. See [third-party data provenance and handling](THIRD_PARTY_DATA.md) and the [manual-audit instructions](reports/phase0/MANUAL_AUDIT.md).
-
-Generated tracked artifacts contain only IDs, derived numeric metadata, aggregate counts, and a Markdown report. Dataset counts are computed from the files in `data/raw/`; the code does not assert published totals.
-
-## Reproduce the Phase 1A contract check
+The repository contains a paid TEST execution path, but the frozen run is complete and must not be
+rerun for reproduction. It requires `OPENAI_API_KEY`, sends corpus-derived inputs to OpenAI, and is
+subject to the explicit configured spend cap:
 
 ```bash
-uv run evalprobe phase1 canary --dry-run
-uv run evalprobe phase1 canary --execute --max-cost-usd 0.50
+uv run evalprobe phase2 --execute --max-cost-usd 3.00  # paid; do not rerun frozen TEST
 ```
 
-The dry run makes no network calls and persists no request text. Execution requires
-`OPENAI_API_KEY` from the environment; it uses no tools, fallback model, or automatic retry.
-Exact prompts, schemas, pricing assumptions, and operational behavior are documented in
-[Phase 1A](docs/PHASE1A.md).
+## Human Review Console
 
-## Human review console
-
-The local Streamlit console supports reproducible human inspection of the Phase 0 sentence audit
-and Phase 1A judge disagreements without contacting a model. It keeps corpus text local while
-persisting only safe adjudication metadata. See [Human review console](docs/REVIEW_CONSOLE.md).
-
-## Reproduce the Phase 1C methodology check
+The Streamlit console supports local inspection of benchmark/judge disagreements while persisting
+only safe IDs, classifications, concise notes, and timestamps. Third-party questions, passages,
+answers, and annotations remain untracked.
 
 ```bash
-uv run evalprobe phase1c diagnostics
-uv run evalprobe phase1c canary --dry-run
-uv run evalprobe phase1c canary --execute --max-cost-usd 0.25
 uv run streamlit run src/evalprobe/review/app.py
 ```
 
-The diagnostics read TRAIN and TEST locally to validate offsets and corpus-wide segmentation,
-but never call a judge. The canary execution path plans exactly six TRAIN local calls. In the
-review console, choose `sentence-v1` or `sentence-v2`; v2 decisions use a separate run identity.
-See [Phase 1C](docs/PHASE1C.md).
+See [console operations](docs/REVIEW_CONSOLE.md).
 
-## Project history and frozen TEST
+## Project structure
 
-The concise reasoning history is in [story.md](story.md), with the lightweight knowledge index at
-[docs/INDEX.md](docs/INDEX.md). The formal [methodology freeze](docs/decisions/methodology-freeze.md)
-records the exact pre-TEST contract. Run the zero-network TEST planner with:
-
-```bash
-uv run evalprobe phase2 --dry-run
+```text
+configs/                 frozen experiment configuration
+src/evalprobe/           audit, judge, persistence, analysis, and review code
+reports/                 safe manifests, metrics, plots, and adjudication metadata
+docs/methodology/        stable definitions and reference hierarchy
+docs/decisions/          frozen methodological decisions
+docs/experiments/        execution history
+docs/findings/           durable findings and limitations
+story.md                 chronological reasoning
+docs/interview-guide.md  concise speaking material
 ```
 
-Paid TEST execution is permitted only when every recorded gate passes, including the unchanged
-$1.50 conservative cost cap. The frozen dry-run estimated $2.108292, so Phase 2 stopped before any
-provider call. See the [frozen TEST experiment note](docs/experiments/frozen-test.md).
+## Limitations
+
+- Only RAGTruth `good` QA responses were evaluated.
+- The frozen TEST pilot contains 60 responses and only 30 unsupported examples.
+- One judge model was used; no second provider or judge ensemble was tested.
+- Exposure to RAGTruth during model training cannot be ruled out.
+- Exact RAGTruth spans are benchmark references, not unquestioned truth.
+- Only 20/71 local judge-only units received qualitative review, using a purposive coverage sample.
+- The burden effect was weak/null and the granularity endpoint was underpowered at 0/1.
+- Local sentence units are deterministic analysis units, not atomic semantic claims.
+- Human adjudication is explanatory and does not establish publication-grade corrected labels.
+
+## Learn more
+
+- [Chronological project story](story.md)
+- [Knowledge index](docs/INDEX.md)
+- [Evaluation design](docs/methodology/evaluation-design.md)
+- [Methodology freeze](docs/decisions/methodology-freeze.md)
+- [Frozen TEST experiment](docs/experiments/frozen-test.md)
+- [Interview guide](docs/interview-guide.md)
+- [Third-party data and licensing](THIRD_PARTY_DATA.md)

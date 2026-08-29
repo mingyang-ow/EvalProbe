@@ -7,14 +7,11 @@ Official Sol-versus-RAGTruth metrics remain unchanged; no human-corrected primar
 
 | Official mismatch | Judge error | Benchmark ambiguity | Segmentation | Mapping | Rubric |
 |---|---:|---:|---:|---:|---:|
-| False positive (n=11) | 1 | 9 | 1 | 0 | 0 |
+| False positive (n=11) | 1 | 10 | 0 | 0 | 0 |
 | False negative (n=1) | 1 | 0 | 0 | 0 | 0 |
 
-- Apparent whole false positives: 9/11 benchmark ambiguity; 1 judge error; 1 segmentation defect.
+- Apparent whole false positives: 10/11 benchmark ambiguity; 1 judge error; 0 segmentation defect.
 - Whole false negatives: 1/1 judge error.
-
-A whole-view segmentation classification is retained as entered, but whole judging does not
-consume sentence units, so it is a methodological flag rather than a recoded verdict.
 
 ## Local reference-only misses
 
@@ -42,5 +39,5 @@ must not be projected onto all 71 judge-only units.
   errors.
 - The frozen burden counts (9/10, 10/10, 10/10) remain weak evidence for a burden effect.
 - Granularity recovery remains 0/1 and therefore underpowered and inconclusive.
-- One whole-view segmentation classification is recorded as a methodological flag. Phase 3 makes
-  no segmentation repair and changes no frozen result.
+- No bounded TEST item remains classified as a segmentation, reference-mapping, or rubric defect.
+  Phase 3 changes no frozen result.

@@ -1,15 +1,18 @@
 {
-  "current_classification": "SEGMENTATION_DEFECT",
+  "current_classification": "BENCHMARK_AMBIGUITY",
   "current_concise_note": "",
-  "final_interpretation_blocked": true,
-  "human_rereview_required": true,
+  "final_interpretation_blocked": false,
+  "human_rereview_required": false,
   "mismatch_type": "FALSE_POSITIVE",
-  "reason": "Whole-response judging consumes the complete answer, not sentence-v2 units. Sentence segmentation therefore cannot directly explain this whole-view prediction disagreement.",
+  "previous_classification": "SEGMENTATION_DEFECT",
+  "reason": "The structurally inconsistent whole-view segmentation classification was surfaced without automatic recoding and then changed by human re-review.",
   "record_id": "14997",
   "review_group": "WHOLE_DISAGREEMENTS",
   "review_id": "bcb20e8a85d44712cf4db835",
   "run_id": "frozen-test-v1",
   "source_id": "15420",
-  "status": "FINAL INTERPRETATION PENDING ONE ADJUDICATION",
+  "status": "PASS",
+  "structural_inconsistency": "Whole-response judging does not consume sentence units, so sentence segmentation cannot directly explain its prediction.",
+  "resolved_reviewed_at": "2026-08-29T02:15:52.645790+00:00",
   "view": "whole"
 }

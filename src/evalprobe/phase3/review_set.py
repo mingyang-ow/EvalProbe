@@ -450,8 +450,8 @@ def write_phase3_error_analysis(
   errors.
 - The frozen burden counts (9/10, 10/10, 10/10) remain weak evidence for a burden effect.
 - Granularity recovery remains 0/1 and therefore underpowered and inconclusive.
-- One whole-view segmentation classification is recorded as a methodological flag. Phase 3 makes
-  no segmentation repair and changes no frozen result."""
+- No bounded TEST item remains classified as a segmentation, reference-mapping, or rubric defect.
+  Phase 3 changes no frozen result."""
         if summary["status"] == "COMPLETE"
         else "Interpretation is deferred until all 44 bounded review items are complete."
     )
@@ -468,9 +468,6 @@ Official Sol-versus-RAGTruth metrics remain unchanged; no human-corrected primar
 
 {whole_fp_line}
 {whole_fn_line}
-
-A whole-view segmentation classification is retained as entered, but whole judging does not
-consume sentence units, so it is a methodological flag rather than a recoded verdict.
 
 ## Local reference-only misses
 

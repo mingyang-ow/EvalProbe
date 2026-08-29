@@ -156,9 +156,9 @@ def test_completed_phase3_human_review_counts_are_frozen() -> None:
     assert summary["status"] == "COMPLETE"
     assert summary["groups"][WHOLE_DISAGREEMENTS]["classification_counts"] == {
         "JUDGE_ERROR": 2,
-        "SEGMENTATION_DEFECT": 1,
+        "SEGMENTATION_DEFECT": 0,
         "REFERENCE_MAPPING_ARTIFACT": 0,
-        "BENCHMARK_AMBIGUITY": 9,
+        "BENCHMARK_AMBIGUITY": 10,
         "RUBRIC_AMBIGUITY": 0,
     }
     assert summary["groups"][LOCAL_REFERENCE_ONLY]["classification_counts"] == {

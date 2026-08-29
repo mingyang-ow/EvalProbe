@@ -40,16 +40,16 @@ a separate methodological question is explicitly authorized.
 
 | Population | Judge error | Benchmark ambiguity | Segmentation defect | Mapping | Rubric |
 |---|---:|---:|---:|---:|---:|
-| Whole false positives (n=11) | 1 | 9 | 1 | 0 | 0 |
+| Whole false positives (n=11) | 1 | 10 | 0 | 0 | 0 |
 | Whole false negative (n=1) | 1 | 0 | 0 | 0 | 0 |
 | Local reference-only (n=12) | 8 | 4 | 0 | 0 | 0 |
 | Local judge-only sample (n=20) | 0 | 20 | 0 | 0 | 0 |
 
 The classifications show both benchmark incompleteness and genuine judge misses. Apparent whole
 false positives and sampled local judge-only flags were dominated by benchmark ambiguity; local
-reference-only items were mostly judge errors. The whole-view segmentation classification is
-retained as submitted, but because whole judging does not use sentence units it is treated as a
-methodological flag rather than recoded automatically.
+reference-only items were mostly judge errors. A structurally inconsistent whole-view segmentation
+classification was surfaced by the final consistency gate and human-re-reviewed as
+`BENCHMARK_AMBIGUITY`; it was not silently recoded.
 
 The 20 judge-only items form a purposive coverage sample, not a probability sample. Their 20/20
 benchmark-ambiguity count describes reviewed items only. Official Sol-versus-RAGTruth metrics are

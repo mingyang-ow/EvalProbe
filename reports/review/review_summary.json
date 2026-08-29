@@ -95,11 +95,11 @@
       },
       "WHOLE_DISAGREEMENTS": {
         "classification_counts": {
-          "BENCHMARK_AMBIGUITY": 9,
+          "BENCHMARK_AMBIGUITY": 10,
           "JUDGE_ERROR": 2,
           "REFERENCE_MAPPING_ARTIFACT": 0,
           "RUBRIC_AMBIGUITY": 0,
-          "SEGMENTATION_DEFECT": 1
+          "SEGMENTATION_DEFECT": 0
         },
         "mismatch_populations": {
           "FALSE_NEGATIVE": {
@@ -116,11 +116,11 @@
           },
           "FALSE_POSITIVE": {
             "classification_counts": {
-              "BENCHMARK_AMBIGUITY": 9,
+              "BENCHMARK_AMBIGUITY": 10,
               "JUDGE_ERROR": 1,
               "REFERENCE_MAPPING_ARTIFACT": 0,
               "RUBRIC_AMBIGUITY": 0,
-              "SEGMENTATION_DEFECT": 1
+              "SEGMENTATION_DEFECT": 0
             },
             "reviewed_count": 11,
             "target_count": 11,

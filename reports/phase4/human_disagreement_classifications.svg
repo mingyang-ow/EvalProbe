@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 820 560">
+  <title id="title">EvalProbe human disagreement classifications</title>
+  <desc id="desc">Generated from safe aggregate EvalProbe reports; labels show raw counts.</desc>
+  <rect width="820" height="560" fill="#ffffff"/>
+  <style>text { font-family: Inter, ui-sans-serif, system-ui, sans-serif; fill: #172033; } .muted { fill: #5f6b7a; } .on-color { fill: #ffffff; }</style>
+  <text x="50" y="48" font-size="25" font-weight="700">What human review found</text>
+  <text x="50" y="76" font-size="15" class="muted">Bounded disagreement populations · raw counts</text>
+  <line x1="285" y1="112" x2="285" y2="400" stroke="#dce2ea"/>
+  <text x="285" y="105" font-size="12" text-anchor="middle" class="muted">0</text>
+  <line x1="400" y1="112" x2="400" y2="400" stroke="#dce2ea"/>
+  <text x="400" y="105" font-size="12" text-anchor="middle" class="muted">5</text>
+  <line x1="515" y1="112" x2="515" y2="400" stroke="#dce2ea"/>
+  <text x="515" y="105" font-size="12" text-anchor="middle" class="muted">10</text>
+  <line x1="630" y1="112" x2="630" y2="400" stroke="#dce2ea"/>
+  <text x="630" y="105" font-size="12" text-anchor="middle" class="muted">15</text>
+  <line x1="745" y1="112" x2="745" y2="400" stroke="#dce2ea"/>
+  <text x="745" y="105" font-size="12" text-anchor="middle" class="muted">20</text>
+  <text x="270" y="162" font-size="14" text-anchor="end">Whole false positives (all)</text>
+  <rect x="285" y="139" width="23" height="34" fill="#d2675a"/>
+  <text x="296.5" y="162" font-size="14" font-weight="700" text-anchor="middle">1</text>
+  <rect x="308" y="139" width="230" height="34" fill="#3d7f85"/>
+  <text x="423.0" y="162" font-size="14" font-weight="700" class="on-color" text-anchor="middle">10</text>
+  <text x="270" y="230" font-size="14" text-anchor="end">Whole false negative (all)</text>
+  <rect x="285" y="207" width="23" height="34" fill="#d2675a"/>
+  <text x="296.5" y="230" font-size="14" font-weight="700" text-anchor="middle">1</text>
+  <text x="270" y="298" font-size="14" text-anchor="end">Local reference-only (all)</text>
+  <rect x="285" y="275" width="184" height="34" fill="#d2675a"/>
+  <text x="377.0" y="298" font-size="14" font-weight="700" text-anchor="middle">8</text>
+  <rect x="469" y="275" width="92" height="34" fill="#3d7f85"/>
+  <text x="515.0" y="298" font-size="14" font-weight="700" class="on-color" text-anchor="middle">4</text>
+  <text x="270" y="366" font-size="14" text-anchor="end">Local judge-only (sampled 20/71)</text>
+  <rect x="285" y="343" width="460" height="34" fill="#3d7f85"/>
+  <text x="515.0" y="366" font-size="14" font-weight="700" class="on-color" text-anchor="middle">20</text>
+  <rect x="285" y="438" width="16" height="16" fill="#d2675a"/>
+  <text x="310" y="451" font-size="14">Judge error</text>
+  <rect x="425" y="438" width="16" height="16" fill="#3d7f85"/>
+  <text x="450" y="451" font-size="14">Benchmark ambiguity</text>
+  <text x="285" y="492" font-size="14">No final reviewed item was a methodology defect.</text>
+  <text x="285" y="518" font-size="13" class="muted">Human review explains official disagreement; it does not relabel metrics.</text>
+</svg>
