@@ -71,68 +71,68 @@
     "groups": {
       "LOCAL_JUDGE_ONLY_SAMPLE": {
         "classification_counts": {
-          "BENCHMARK_AMBIGUITY": 0,
+          "BENCHMARK_AMBIGUITY": 19,
           "JUDGE_ERROR": 0,
           "REFERENCE_MAPPING_ARTIFACT": 0,
           "RUBRIC_AMBIGUITY": 0,
-          "SEGMENTATION_DEFECT": 0
+          "SEGMENTATION_DEFECT": 1
         },
-        "reviewed_count": 0,
+        "reviewed_count": 20,
         "target_count": 20,
-        "unreviewed_count": 20
+        "unreviewed_count": 0
       },
       "LOCAL_REFERENCE_ONLY": {
         "classification_counts": {
-          "BENCHMARK_AMBIGUITY": 0,
-          "JUDGE_ERROR": 0,
+          "BENCHMARK_AMBIGUITY": 4,
+          "JUDGE_ERROR": 8,
           "REFERENCE_MAPPING_ARTIFACT": 0,
           "RUBRIC_AMBIGUITY": 0,
           "SEGMENTATION_DEFECT": 0
         },
-        "reviewed_count": 0,
+        "reviewed_count": 12,
         "target_count": 12,
-        "unreviewed_count": 12
+        "unreviewed_count": 0
       },
       "WHOLE_DISAGREEMENTS": {
         "classification_counts": {
-          "BENCHMARK_AMBIGUITY": 0,
-          "JUDGE_ERROR": 0,
+          "BENCHMARK_AMBIGUITY": 9,
+          "JUDGE_ERROR": 2,
           "REFERENCE_MAPPING_ARTIFACT": 0,
           "RUBRIC_AMBIGUITY": 0,
-          "SEGMENTATION_DEFECT": 0
+          "SEGMENTATION_DEFECT": 1
         },
         "mismatch_populations": {
           "FALSE_NEGATIVE": {
             "classification_counts": {
               "BENCHMARK_AMBIGUITY": 0,
-              "JUDGE_ERROR": 0,
+              "JUDGE_ERROR": 1,
               "REFERENCE_MAPPING_ARTIFACT": 0,
               "RUBRIC_AMBIGUITY": 0,
               "SEGMENTATION_DEFECT": 0
             },
-            "reviewed_count": 0,
+            "reviewed_count": 1,
             "target_count": 1,
-            "unreviewed_count": 1
+            "unreviewed_count": 0
           },
           "FALSE_POSITIVE": {
             "classification_counts": {
-              "BENCHMARK_AMBIGUITY": 0,
-              "JUDGE_ERROR": 0,
+              "BENCHMARK_AMBIGUITY": 9,
+              "JUDGE_ERROR": 1,
               "REFERENCE_MAPPING_ARTIFACT": 0,
               "RUBRIC_AMBIGUITY": 0,
-              "SEGMENTATION_DEFECT": 0
+              "SEGMENTATION_DEFECT": 1
             },
-            "reviewed_count": 0,
+            "reviewed_count": 11,
             "target_count": 11,
-            "unreviewed_count": 11
+            "unreviewed_count": 0
           }
         },
-        "reviewed_count": 0,
+        "reviewed_count": 12,
         "target_count": 12,
-        "unreviewed_count": 12
+        "unreviewed_count": 0
       }
     },
     "official_metrics_rewritten": false,
-    "status": "HUMAN_REVIEW_REQUIRED"
+    "status": "COMPLETE"
   }
 }

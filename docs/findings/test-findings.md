@@ -13,13 +13,20 @@ was 60/131 and recall was 60/72. The single whole-response unsupported miss had 
 detection, so the prespecified granularity-recovery result was 0/1. This null result does not show
 that local judging caused or prevented whole-response errors.
 
-These are official benchmark comparisons, not human-corrected scores. Ninety-five disagreement
-items await explanatory review, and no TEST adjudication has occurred. Claims about benchmark
-ambiguity or judge error should wait for that review.
+These are official benchmark comparisons, not human-corrected scores.
 
-## Error analysis pending
+## What the benchmark score hid
 
-The apparent whole false positives and local judge-only flags cannot yet be interpreted as judge
-errors. Phase 3 therefore freezes a bounded 44-item review set before any text inspection: all
-whole disagreements, all local reference-only misses, and a diverse deterministic sample of 20
-local judge-only flags. Findings will be updated only after human review is complete.
+Human review did not support interpreting all apparent false positives as judge over-calling. Nine
+of 11 whole false positives were classified as plausible benchmark ambiguity, versus one judge
+error and one segmentation flag. Similarly, 19/20 sampled local judge-only flags were classified
+as benchmark ambiguity. Because this was a deterministic coverage sample rather than a probability
+sample, 19/20 must not be projected to all 71 judge-only units.
+
+The judge also made genuine misses: 8/12 local reference-only items and the single whole false
+negative were classified as judge errors. The most defensible interpretation is therefore mixed:
+official local precision is depressed by plausible annotation incompleteness, while local recall
+still hides substantive judge misses.
+
+The burden result remains weak or null at this scale, and granularity recovery remains
+underpowered at 0/1. Human review does not create corrected headline metrics.

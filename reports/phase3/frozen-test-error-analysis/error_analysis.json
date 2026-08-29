@@ -1,0 +1,79 @@
+{
+  "groups": {
+    "LOCAL_JUDGE_ONLY_SAMPLE": {
+      "classification_counts": {
+        "BENCHMARK_AMBIGUITY": 19,
+        "JUDGE_ERROR": 0,
+        "REFERENCE_MAPPING_ARTIFACT": 0,
+        "RUBRIC_AMBIGUITY": 0,
+        "SEGMENTATION_DEFECT": 1
+      },
+      "reviewed_count": 20,
+      "target_count": 20,
+      "unreviewed_count": 0
+    },
+    "LOCAL_REFERENCE_ONLY": {
+      "classification_counts": {
+        "BENCHMARK_AMBIGUITY": 4,
+        "JUDGE_ERROR": 8,
+        "REFERENCE_MAPPING_ARTIFACT": 0,
+        "RUBRIC_AMBIGUITY": 0,
+        "SEGMENTATION_DEFECT": 0
+      },
+      "reviewed_count": 12,
+      "target_count": 12,
+      "unreviewed_count": 0
+    },
+    "WHOLE_DISAGREEMENTS": {
+      "classification_counts": {
+        "BENCHMARK_AMBIGUITY": 9,
+        "JUDGE_ERROR": 2,
+        "REFERENCE_MAPPING_ARTIFACT": 0,
+        "RUBRIC_AMBIGUITY": 0,
+        "SEGMENTATION_DEFECT": 1
+      },
+      "mismatch_populations": {
+        "FALSE_NEGATIVE": {
+          "classification_counts": {
+            "BENCHMARK_AMBIGUITY": 0,
+            "JUDGE_ERROR": 1,
+            "REFERENCE_MAPPING_ARTIFACT": 0,
+            "RUBRIC_AMBIGUITY": 0,
+            "SEGMENTATION_DEFECT": 0
+          },
+          "reviewed_count": 1,
+          "target_count": 1,
+          "unreviewed_count": 0
+        },
+        "FALSE_POSITIVE": {
+          "classification_counts": {
+            "BENCHMARK_AMBIGUITY": 9,
+            "JUDGE_ERROR": 1,
+            "REFERENCE_MAPPING_ARTIFACT": 0,
+            "RUBRIC_AMBIGUITY": 0,
+            "SEGMENTATION_DEFECT": 1
+          },
+          "reviewed_count": 11,
+          "target_count": 11,
+          "unreviewed_count": 0
+        }
+      },
+      "reviewed_count": 12,
+      "target_count": 12,
+      "unreviewed_count": 0
+    }
+  },
+  "interpretive_limits": {
+    "granularity_recovery_denominator": 1,
+    "granularity_recovery_numerator": 0,
+    "human_corrected_primary_metric_created": false,
+    "judge_only_population_size": 71,
+    "judge_only_sample_is_purposive": true,
+    "judge_only_sample_size": 20
+  },
+  "official_metrics_rewritten": false,
+  "official_metrics_status": "UNCHANGED",
+  "reviewed_total": 44,
+  "status": "COMPLETE",
+  "target_total": 44
+}

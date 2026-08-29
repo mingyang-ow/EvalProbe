@@ -40,6 +40,7 @@ from evalprobe.phase3.review_set import (
     load_phase3_review_items,
     phase3_adjudication_summary,
     prepare_phase3_review_set,
+    write_phase3_error_analysis,
 )
 from evalprobe.review.diagnostics import aggregate_suspicious_units
 from evalprobe.review.loaders import (
@@ -314,8 +315,14 @@ def _run_review(args: argparse.Namespace) -> int:
         )
         decisions = load_adjudications(args.adjudications)
         if phase3_path.is_file():
+            phase3_items = load_phase3_review_items(phase3_path)
             summary["phase3_test_error_analysis"] = phase3_adjudication_summary(
-                load_phase3_review_items(phase3_path), decisions
+                phase3_items, decisions
+            )
+            write_phase3_error_analysis(
+                phase3_items,
+                decisions,
+                repository_root / "reports/phase3/frozen-test-error-analysis",
             )
         write_safe_json(args.output, summary)
         phase0_versions = summary["phase0_sentence_audit_versions"]

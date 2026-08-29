@@ -364,3 +364,135 @@ def phase3_adjudication_summary(
         "groups": groups,
         "official_metrics_rewritten": False,
     }
+
+
+def write_phase3_error_analysis(
+    items: list[Phase3ReviewItem],
+    decisions: list[Adjudication],
+    output_dir: Path,
+) -> dict[str, Any]:
+    summary = phase3_adjudication_summary(items, decisions)
+    groups = summary["groups"]
+    whole = groups[WHOLE_DISAGREEMENTS]
+    false_positives = whole["mismatch_populations"]["FALSE_POSITIVE"]
+    false_negatives = whole["mismatch_populations"]["FALSE_NEGATIVE"]
+    reference_only = groups[LOCAL_REFERENCE_ONLY]
+    judge_only = groups[LOCAL_JUDGE_ONLY_SAMPLE]
+    analysis = {
+        **summary,
+        "reviewed_total": sum(group["reviewed_count"] for group in groups.values()),
+        "target_total": sum(group["target_count"] for group in groups.values()),
+        "official_metrics_status": "UNCHANGED",
+        "interpretive_limits": {
+            "judge_only_sample_is_purposive": True,
+            "judge_only_population_size": 71,
+            "judge_only_sample_size": judge_only["target_count"],
+            "granularity_recovery_numerator": 0,
+            "granularity_recovery_denominator": 1,
+            "human_corrected_primary_metric_created": False,
+        },
+    }
+    write_json(output_dir / "error_analysis.json", analysis)
+
+    def count(population: dict[str, Any], classification: str) -> int:
+        return int(population["classification_counts"][classification])
+
+    def classification_row(label: str, population: dict[str, Any]) -> str:
+        values = (
+            count(population, "JUDGE_ERROR"),
+            count(population, "BENCHMARK_AMBIGUITY"),
+            count(population, "SEGMENTATION_DEFECT"),
+            count(population, "REFERENCE_MAPPING_ARTIFACT"),
+            count(population, "RUBRIC_AMBIGUITY"),
+        )
+        rendered = " | ".join(str(value) for value in values)
+        return f"| {label} (n={population['target_count']}) | {rendered} |"
+
+    whole_rows = "\n".join(
+        (
+            classification_row("False positive", false_positives),
+            classification_row("False negative", false_negatives),
+        )
+    )
+    reference_row = classification_row("Reference only", reference_only)
+    judge_row = classification_row("Judge-only sample", judge_only)
+    status_line = (
+        f"Status: **{summary['status']}**. Reviewed: "
+        f"**{analysis['reviewed_total']} / {analysis['target_total']}**."
+    )
+    whole_fp_line = (
+        f"- Apparent whole false positives: "
+        f"{count(false_positives, 'BENCHMARK_AMBIGUITY')}/"
+        f"{false_positives['target_count']} benchmark ambiguity; "
+        f"{count(false_positives, 'JUDGE_ERROR')} judge error; "
+        f"{count(false_positives, 'SEGMENTATION_DEFECT')} segmentation defect."
+    )
+    whole_fn_line = (
+        f"- Whole false negatives: {count(false_negatives, 'JUDGE_ERROR')}/"
+        f"{false_negatives['target_count']} judge error."
+    )
+    reference_line = (
+        f"Of {reference_only['target_count']} official unsupported units missed by the local "
+        f"judge, {count(reference_only, 'JUDGE_ERROR')} were classified as judge errors and "
+        f"{count(reference_only, 'BENCHMARK_AMBIGUITY')} as benchmark ambiguity."
+    )
+    judge_line = (
+        f"Of {judge_only['target_count']} sampled judge-only units, "
+        f"{count(judge_only, 'BENCHMARK_AMBIGUITY')} were classified as benchmark ambiguity and "
+        f"{count(judge_only, 'SEGMENTATION_DEFECT')} as a segmentation defect."
+    )
+
+    interpretation = (
+        """- The review does not support treating every apparent whole false positive or local
+  judge-only flag as judge over-calling; benchmark incompleteness was the dominant human
+  classification in both reviewed populations.
+- Local judging also made genuine misses: 8/12 local reference-only items were classified as judge
+  errors.
+- The frozen burden counts (9/10, 10/10, 10/10) remain weak evidence for a burden effect.
+- Granularity recovery remains 0/1 and therefore underpowered and inconclusive.
+- Two segmentation classifications are recorded for future methodology review. Phase 3 makes no
+  segmentation repair and changes no frozen result."""
+        if summary["status"] == "COMPLETE"
+        else "Interpretation is deferred until all 44 bounded review items are complete."
+    )
+    report = f"""# Frozen TEST human error analysis
+
+{status_line}
+Official Sol-versus-RAGTruth metrics remain unchanged; no human-corrected primary metric is created.
+
+## Whole disagreements
+
+| Official mismatch | Judge error | Benchmark ambiguity | Segmentation | Mapping | Rubric |
+|---|---:|---:|---:|---:|---:|
+{whole_rows}
+
+{whole_fp_line}
+{whole_fn_line}
+
+A whole-view segmentation classification is retained as entered, but whole judging does not
+consume sentence units, so it is a methodological flag rather than a recoded verdict.
+
+## Local reference-only misses
+
+| Population | Judge error | Benchmark ambiguity | Segmentation | Mapping | Rubric |
+|---|---:|---:|---:|---:|---:|
+{reference_row}
+
+{reference_line}
+
+## Sampled local judge-only flags
+
+| Population | Judge error | Benchmark ambiguity | Segmentation | Mapping | Rubric |
+|---|---:|---:|---:|---:|---:|
+{judge_row}
+
+{judge_line} This was a deterministic coverage sample, not a probability sample; its exact rate
+must not be projected onto all 71 judge-only units.
+
+## Interpretation boundaries
+
+{interpretation}
+"""
+    (output_dir / "error_analysis.md").parent.mkdir(parents=True, exist_ok=True)
+    (output_dir / "error_analysis.md").write_text(report, encoding="utf-8")
+    return analysis

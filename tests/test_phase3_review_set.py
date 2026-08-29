@@ -10,8 +10,10 @@ from evalprobe.phase3.review_set import (
     load_phase3_review_items,
     phase3_adjudication_summary,
     prepare_phase3_review_set,
+    write_phase3_error_analysis,
 )
 from evalprobe.review.models import Adjudication, HumanClassification, ReviewKind
+from evalprobe.review.storage import load_adjudications
 
 REPOSITORY_ROOT = Path(__file__).parents[1]
 PHASE2 = REPOSITORY_ROOT / "reports/phase2/frozen-test-v1"
@@ -135,3 +137,41 @@ def test_phase3_safe_summary_keeps_populations_separate(tmp_path: Path) -> None:
         "FALSE_POSITIVE"
     ]
     assert false_positives["classification_counts"]["JUDGE_ERROR"] == 1
+
+    analysis = write_phase3_error_analysis(items, [decision], tmp_path)
+    assert analysis["official_metrics_status"] == "UNCHANGED"
+    assert analysis["interpretive_limits"]["human_corrected_primary_metric_created"] is False
+    assert (tmp_path / "error_analysis.json").is_file()
+    assert (tmp_path / "error_analysis.md").is_file()
+
+
+def test_completed_phase3_human_review_counts_are_frozen() -> None:
+    items = load_phase3_review_items(
+        REPOSITORY_ROOT / "reports/phase3/frozen-test-error-analysis/review_set.jsonl"
+    )
+    decisions = load_adjudications(REPOSITORY_ROOT / "reports/review/adjudications.jsonl")
+
+    summary = phase3_adjudication_summary(items, decisions)
+
+    assert summary["status"] == "COMPLETE"
+    assert summary["groups"][WHOLE_DISAGREEMENTS]["classification_counts"] == {
+        "JUDGE_ERROR": 2,
+        "SEGMENTATION_DEFECT": 1,
+        "REFERENCE_MAPPING_ARTIFACT": 0,
+        "BENCHMARK_AMBIGUITY": 9,
+        "RUBRIC_AMBIGUITY": 0,
+    }
+    assert summary["groups"][LOCAL_REFERENCE_ONLY]["classification_counts"] == {
+        "JUDGE_ERROR": 8,
+        "SEGMENTATION_DEFECT": 0,
+        "REFERENCE_MAPPING_ARTIFACT": 0,
+        "BENCHMARK_AMBIGUITY": 4,
+        "RUBRIC_AMBIGUITY": 0,
+    }
+    assert summary["groups"][LOCAL_JUDGE_ONLY_SAMPLE]["classification_counts"] == {
+        "JUDGE_ERROR": 0,
+        "SEGMENTATION_DEFECT": 1,
+        "REFERENCE_MAPPING_ARTIFACT": 0,
+        "BENCHMARK_AMBIGUITY": 19,
+        "RUBRIC_AMBIGUITY": 0,
+    }

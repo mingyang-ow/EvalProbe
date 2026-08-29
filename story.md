@@ -92,4 +92,12 @@ mapping ambiguity. **Consequence:** Phase 3 includes all 12 whole disagreements,
 reference-only units, and a deterministic 20-item judge-only sample; conclusions remain pending
 human review.
 
+**Observation:** bounded review classified 9/11 apparent whole false positives and 19/20 sampled
+local judge-only flags as `BENCHMARK_AMBIGUITY`, while 8/12 local reference-only misses and the
+single whole false negative were `JUDGE_ERROR`. Two items were flagged as segmentation defects.
+**Decision:** retain official metrics and report human findings only as explanatory strata.
+**Reason:** the review reveals both benchmark incompleteness and genuine judge misses, but the
+judge-only set is purposively sampled and granularity recovery remains 0/1. **Consequence:** Phase
+3 is complete; the headline is what the fixed benchmark scores hid, not a human-corrected score.
+
 Navigation and stable definitions live in [docs/INDEX.md](docs/INDEX.md).
