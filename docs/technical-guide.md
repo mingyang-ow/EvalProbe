@@ -1,6 +1,6 @@
-# EvalProbe interview guide
+# EvalProbe technical guide
 
-## 20-second explanation
+## Overview
 
 EvalProbe tests whether an LLM judge can reliably detect unsupported claims in grounded RAG
 answers. I froze a 60-response RAGTruth TEST pilot, evaluated whole responses and deterministic
@@ -9,7 +9,7 @@ judge reached 96.7% unsupported recall, but error analysis showed the more impor
 benchmark disagreement is not automatically judge error, and evaluator preprocessing can create
 fake failures.
 
-## Two-minute explanation
+## Experiment and findings
 
 RAG evaluation often treats either a benchmark or an LLM judge as ground truth. I wanted to test a
 specific hypothesis: whether whole-response judging misses a small unsupported claim that local
@@ -32,10 +32,10 @@ benchmark ambiguities, but that was a purposive 20/71 sample and is not a popula
 The original burden effect was weak: detection was 9/10, 10/10, and 10/10 across low, medium, and
 high strata. There was only one whole unsupported miss, and local judging recovered 0/1, so the
 planned granularity comparison was underpowered. I kept those null and inconclusive findings. The
-portfolio contribution is therefore the evaluation system and its disciplined distinction among
+main contribution is therefore the evaluation system and its disciplined distinction among
 model error, benchmark ambiguity, and methodology defects—not a claim that local judging won.
 
-## Likely questions
+## Design questions
 
 ### Why RAGTruth?
 
@@ -68,7 +68,7 @@ versus unchanged RAGTruth; human classifications explain disagreements separatel
 
 ### Why only 60 TEST responses?
 
-This is a bounded portfolio pilot with 30 supported and 30 unsupported examples, chosen before
+This is a bounded evaluation pilot with 30 supported and 30 unsupported examples, chosen before
 execution and protected by a cost cap. It is large enough to exercise the system, but uncertainty
 and rare-error denominators remain important limitations.
 
