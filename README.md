@@ -4,8 +4,8 @@ A reproducible evaluation framework for testing when an LLM judge can be trusted
 grounded RAG answers—and diagnosing whether disagreements come from the judge, benchmark, or
 evaluation pipeline.
 
-**Status:** evaluation experiment complete · human error analysis complete · portfolio
-consolidation complete
+**Status:** evaluation experiment complete · human error analysis complete · project
+documentation complete
 
 ## Why this project exists
 
@@ -14,7 +14,7 @@ causes: the judge may be wrong, the benchmark annotation may be incomplete, or p
 have distorted the unit being evaluated. EvalProbe makes those failure sources observable instead
 of assuming either the model or benchmark is infallible.
 
-The project is intentionally narrow and interview-forward: one human-annotated dataset, one frozen
+The project is intentionally narrow and reproducible: one human-annotated dataset, one frozen
 QA pilot, one judge, independent whole/local views, deterministic validation, and a bounded human
 adjudication workflow.
 
@@ -125,7 +125,7 @@ uv run evalprobe phase1c diagnostics
 uv run evalprobe phase2 --dry-run --max-cost-usd 3.00
 uv run evalprobe phase3 --prepare
 uv run evalprobe review summary
-uv run python scripts/build_portfolio_plots.py
+uv run python scripts/build_report_plots.py
 uv run ruff check .
 uv run pytest
 ```
@@ -161,7 +161,7 @@ docs/decisions/          frozen methodological decisions
 docs/experiments/        execution history
 docs/findings/           durable findings and limitations
 story.md                 chronological reasoning
-docs/interview-guide.md  concise speaking material
+docs/technical-guide.md  design rationale and findings
 ```
 
 ## Limitations
@@ -183,5 +183,5 @@ docs/interview-guide.md  concise speaking material
 - [Evaluation design](docs/methodology/evaluation-design.md)
 - [Methodology freeze](docs/decisions/methodology-freeze.md)
 - [Frozen TEST experiment](docs/experiments/frozen-test.md)
-- [Interview guide](docs/interview-guide.md)
+- [Technical guide](docs/technical-guide.md)
 - [Third-party data and licensing](THIRD_PARTY_DATA.md)

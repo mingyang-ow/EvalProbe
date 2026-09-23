@@ -28,7 +28,7 @@ def test_readme_mermaid_pipeline_is_complete() -> None:
     assert "Human adjudication" in readme
 
 
-def test_final_portfolio_svgs_are_accessible_and_label_raw_counts() -> None:
+def test_final_report_svgs_are_accessible_and_label_raw_counts() -> None:
     expected = {
         "whole_confusion_matrix.svg": ["19", "11", "1", "29", "raw counts"],
         "human_disagreement_classifications.svg": [

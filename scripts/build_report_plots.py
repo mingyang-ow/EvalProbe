@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the two final, dependency-free portfolio SVGs from safe aggregate reports."""
+"""Build the two final, dependency-free report SVGs from safe aggregate reports."""
 
 from __future__ import annotations
 

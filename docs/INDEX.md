@@ -5,9 +5,9 @@ Obsidian vault if useful; no Obsidian plugin is required.
 
 ## Start here
 
-- [Recruiter-facing overview](../README.md)
+- [Project overview](../README.md)
 - [Chronological project story](../story.md)
-- [Interview guide](interview-guide.md)
+- [Technical guide](technical-guide.md)
 - [Evaluation design](methodology/evaluation-design.md)
 - [Formal methodology freeze](decisions/methodology-freeze.md)
 
@@ -30,12 +30,12 @@ Obsidian vault if useful; no Obsidian plugin is required.
 - [Frozen TEST findings](findings/test-findings.md)
 - [Frozen TEST error-analysis protocol](findings/test-error-analysis.md)
 
-## Portfolio handoff
+## Project summary and results
 
-- [Interview guide](interview-guide.md)
+- [Technical guide](technical-guide.md)
 - [Final whole-response confusion matrix](../reports/phase4/whole_confusion_matrix.svg)
 - [Final human disagreement classifications](../reports/phase4/human_disagreement_classifications.svg)
 
-Maintenance rule: README is the concise portfolio entry point; `story.md` explains why the
+Maintenance rule: README is the concise project entry point; `story.md` explains why the
 project changed; methodology notes define stable rules; experiment notes describe specific runs;
 findings retain conclusions that survive individual run details.
